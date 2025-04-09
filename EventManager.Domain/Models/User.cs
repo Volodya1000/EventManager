@@ -1,13 +1,14 @@
-﻿namespace EventManager.Domain.Models;
+﻿using Microsoft.AspNetCore.Identity;
 
-public class User
+namespace EventManager.Domain.Models;
+
+public class User : IdentityUser<Guid>
 {
-    public Guid Id { get; init; }
     public string FirstName { get; init; }
     public string LastName { get; init; }
     public DateTime DateOfBirth { get; init; }
-    public string Email { get; init; }
-    public string PasswordHash { get; init; }
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiresAtUtc { get; set; }
 
     public User(
         Guid id,

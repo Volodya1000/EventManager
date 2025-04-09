@@ -13,12 +13,6 @@ public class UserEntityConfiguration : IEntityTypeConfiguration<UserEntity>
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id).ValueGeneratedOnAdd();
 
-        builder.Property(u => u.Email)
-            .IsRequired()
-            .HasMaxLength(255);
-
-        builder.HasIndex(u => u.Email).IsUnique();
-
         builder.HasMany(u => u.Participants)
             .WithOne(p => p.User)
             .HasForeignKey(p => p.UserId);
