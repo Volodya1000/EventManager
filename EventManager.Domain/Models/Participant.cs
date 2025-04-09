@@ -2,21 +2,15 @@
 
 public class Participant
 {
-    public int Id { get; private set; }
-    public string FirstName { get; private set; }
-    public string LastName { get; private set; }
-    public DateTime DateOfBirth { get; private set; }
-    public string Email { get; private set; }
-
-    public Participant(
-        string firstName,
-        string lastName,
-        DateTime dateOfBirth,
-        string email)
+    public Guid Id { get; init; }
+    public Guid UserId { get; init; }
+    public Guid EventId { get; init; }
+    public DateTime RegistrationDate { get; init; }
+    public Participant(Guid id, Guid userId, Guid eventId, DateTime registrationDate)
     {
-        FirstName = firstName;
-        LastName = lastName;
-        DateOfBirth = dateOfBirth;
-        Email = email;
+        Id = id;
+        UserId = userId;
+        EventId = eventId;
+        RegistrationDate = registrationDate;
     }
 }

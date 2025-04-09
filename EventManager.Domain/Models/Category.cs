@@ -2,11 +2,12 @@
 
 public class Category
 {
-    public int Id { get; private set; }
-    public string Name { get; private set; }
+    public Guid Id { get; init; }
+    public string Name { get; init; }
 
-    public Category(string name)
+    public Category(Guid id, string name)
     {
+        Id = id;
         Name = name;
     }
 }

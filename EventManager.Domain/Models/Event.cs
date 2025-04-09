@@ -2,21 +2,19 @@
 
 public class Event
 {
-    public int Id { get; private set; }
-    public string Name { get; private set; }
-    public string Description { get; private set; }
-    public DateTime DateTime { get; private set; }
-    public string Location { get; private set; }
-    public int CategoryId { get; private set; } 
-    public int MaxParticipants { get; private set; }
-    public string ImageUrl { get; private set; }
+    public Guid Id { get; init; }
+    public string Name { get; init; }
+    public string Description { get; init; }
+    public DateTime DateTime { get; init; }
+    public string Location { get; init; }
+    public int CategoryId { get; init; }
+    public int MaxParticipants { get; init; }
+    public string ImageUrl { get; init; }
 
-    // Приватный список ID участников для инкапсуляции
-    private readonly List<int> _participantIds = new();
-    public IReadOnlyCollection<int> ParticipantIds => _participantIds.AsReadOnly();
+    private readonly List<Guid> _participantIds = new();
+    public IReadOnlyCollection<Guid> ParticipantIds => _participantIds.AsReadOnly();
 
-
-    public void AddParticipant(int participantId)
+    public void AddParticipant(Guid participantId)
     {
         if (_participantIds.Count >= MaxParticipants)
             throw new InvalidOperationException("The event contains the maximum number of participants.");
@@ -24,12 +22,13 @@ public class Event
         _participantIds.Add(participantId);
     }
 
-    public void RemoveParticipant(int participantId)
+    public void RemoveParticipant(Guid participantId)
     {
         _participantIds.Remove(participantId);
     }
 
     public Event(
+        Guid id,
         string name,
         string description,
         DateTime dateTime,
@@ -38,6 +37,7 @@ public class Event
         int maxParticipants,
         string imageUrl)
     {
+        Id = id;
         Name = name;
         Description = description;
         DateTime = dateTime;
