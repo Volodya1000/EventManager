@@ -1,4 +1,5 @@
-﻿using EventManager.Persistence.Entities;
+﻿using EventManager.Persistence.Configurations;
+using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventManager.Persistence;
@@ -14,6 +15,16 @@ public class EventManagerDbContext : DbContext
           : base(options)
     {
         Database.EnsureCreated();
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfiguration(new UserEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new EventEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new ParticipantEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new CategoryEntityConfiguration());
+
+        base.OnModelCreating(modelBuilder);
     }
 
 }
