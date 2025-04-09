@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManager.Domain", "EventManager.Domain\EventManager.Domain.csproj", "{EF7AB8C8-08C8-4736-BA28-21B687E9823B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManager.Application", "EventManager.Application\EventManager.Application.csproj", "{0DC85FBB-6C44-42AF-BB5B-F588C5579D79}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManager.Persistence", "EventManager.Persistence\EventManager.Persistence.csproj", "{2BA04930-E235-459C-98C5-789023195204}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{0DC85FBB-6C44-42AF-BB5B-F588C5579D79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DC85FBB-6C44-42AF-BB5B-F588C5579D79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DC85FBB-6C44-42AF-BB5B-F588C5579D79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BA04930-E235-459C-98C5-789023195204}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BA04930-E235-459C-98C5-789023195204}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BA04930-E235-459C-98C5-789023195204}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BA04930-E235-459C-98C5-789023195204}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

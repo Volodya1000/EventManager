@@ -7,7 +7,7 @@ public class Event
     public string Description { get; init; }
     public DateTime DateTime { get; init; }
     public string Location { get; init; }
-    public int CategoryId { get; init; }
+    public Guid CategoryId { get; init; }
     public int MaxParticipants { get; init; }
     public string ImageUrl { get; init; }
 
@@ -33,7 +33,7 @@ public class Event
         string description,
         DateTime dateTime,
         string location,
-        int categoryId,
+        Guid categoryId,
         int maxParticipants,
         string imageUrl)
     {
