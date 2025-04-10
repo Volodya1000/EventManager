@@ -22,4 +22,8 @@
     <ProjectReference Include="..\EventManager.Persistence\EventManager.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Endpoints\" />
+  </ItemGroup>
+
 </Project>
