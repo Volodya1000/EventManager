@@ -1,4 +1,4 @@
-﻿namespace Authentication.Domain.Requests;
+﻿namespace EventManager.Domain.Requests;
 
 public record RegisterRequest
 {
