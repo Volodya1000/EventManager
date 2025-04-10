@@ -1,6 +1,6 @@
 ﻿using EventManager.Domain.Models;
 
-namespace EventManager.Application.Interfaces;
+namespace EventManager.Application.Interfaces.AuthTokenProcessor;
 
 public interface IAuthTokenProcessor
 {
