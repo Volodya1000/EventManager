@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManager.Persistence", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManager.Api", "EventManager.Api\EventManager.Api.csproj", "{BD42673F-3C2D-4ADE-9E4C-BF20D8F194EC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6C0A4300-C392-4A8C-9188-E82B6E156468}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Tests", "Tests\Application.Tests\Application.Tests.csproj", "{C55D4D11-7F32-4F8E-8BB1-6C7A874368DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +35,10 @@ Global
 		{BD42673F-3C2D-4ADE-9E4C-BF20D8F194EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD42673F-3C2D-4ADE-9E4C-BF20D8F194EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD42673F-3C2D-4ADE-9E4C-BF20D8F194EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C55D4D11-7F32-4F8E-8BB1-6C7A874368DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C55D4D11-7F32-4F8E-8BB1-6C7A874368DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C55D4D11-7F32-4F8E-8BB1-6C7A874368DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C55D4D11-7F32-4F8E-8BB1-6C7A874368DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
