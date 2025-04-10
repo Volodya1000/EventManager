@@ -4,10 +4,10 @@ namespace EventManager.Domain.Models;
 
 public class User : IdentityUser<Guid>
 {
-    public string FirstName { get; init; }
-    public string LastName { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
     public DateTime DateOfBirth { get; init; }
-    public string? RefreshToken { get; set; }
+    public required string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiresAtUtc { get; set; }
 
     public User(
@@ -18,7 +18,7 @@ public class User : IdentityUser<Guid>
         string email,
         string passwordHash)
     {
-        Id=id;
+        Id = id;
         FirstName = firstName;
         LastName = lastName;
         DateOfBirth = dateOfBirth;
