@@ -7,9 +7,9 @@ using EventManager.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using EventManager.Application.Interfaces;
+using EventManager.Application.Interfaces.AuthTokenProcessor;
 
-namespace Authentication.Infrastructure.Processors;
+namespace EventManager.Infrastructure.Processors;
 
 public class AuthTokenProcessor : IAuthTokenProcessor
 {

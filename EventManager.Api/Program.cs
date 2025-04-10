@@ -1,8 +1,12 @@
-using Authentication.Infrastructure.Processors;
-using EventManager.Application.Interfaces;
+using EventManager.Application.Interfaces.AuthTokenProcessor;
+using EventManager.Application.Interfaces.Repositories;
+using EventManager.Application.Interfaces.Services;
+using EventManager.Application.Services;
 using EventManager.Domain.Models;
 using EventManager.Domain.Options;
+using EventManager.Infrastructure.Processors;
 using EventManager.Persistence;
+using EventManager.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +40,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
 
 //Регистрация в DI контенер
 builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
-
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 builder.Services.AddAuthentication(opt =>
 {

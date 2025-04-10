@@ -1,9 +1,10 @@
 ﻿using EventManager.Application.Interfaces.AuthTokenProcessor;
 using EventManager.Application.Interfaces.Services;
-using EventManager.Domain.Entities;
+using EventManager.Domain.Models;
 using EventManager.Domain.Exceptions;
 using EventManager.Domain.Requests;
 using Microsoft.AspNetCore.Identity;
+using EventManager.Application.Interfaces.Repositories;
 
 namespace EventManager.Application.Services;
 
@@ -30,7 +31,9 @@ public class AccountService : IAccountService
             throw new UserAlreadyExistsException(email: registerRequest.Email);
         }
 
-        var user = User.Create(registerRequest.Email, registerRequest.FirstName, registerRequest.LastName);
+        var user = User.Create(registerRequest.Email, 
+            registerRequest.FirstName, registerRequest.LastName, registerRequest.DateOfBirth);
+
         user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, registerRequest.Password);
 
         var result = await _userManager.CreateAsync(user);
