@@ -7,11 +7,11 @@ namespace EventManager.Persistence.Repositories;
 
 public class UserRepository:IUserRepository
 {
-    private readonly EventManagerDbContext _applicationDbContext;
+    private readonly ApplicationDbContext _applicationDbContext;
     private readonly IMapper _mapper;
 
     public UserRepository(
-        EventManagerDbContext applicationDbContext,
+        ApplicationDbContext applicationDbContext,
         IMapper mapper)
     {
         _applicationDbContext = applicationDbContext;
@@ -20,11 +20,12 @@ public class UserRepository:IUserRepository
 
     public async Task<User?> GetUserByRefreshTokenAsync(string refreshToken)
     {
-        var userEntity = await _applicationDbContext.Users
+        var user = await _applicationDbContext.Users
             .FirstOrDefaultAsync(x => x.RefreshToken == refreshToken);
 
-        return userEntity == null
-            ? null
-            : _mapper.Map<User>(userEntity);
+        //return userEntity == null
+        //    ? null
+        //    : _mapper.Map<User>(userEntity);
+        return user;
     }
 }

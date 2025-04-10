@@ -1,4 +1,6 @@
-﻿namespace EventManager.Persistence.Entities;
+﻿using EventManager.Domain.Models;
+
+namespace EventManager.Persistence.Entities;
 
 public class ParticipantEntity
 {
@@ -7,6 +9,6 @@ public class ParticipantEntity
     public Guid EventId { get; set; }
     public DateTime RegistrationDate { get; set; }
 
-    public UserEntity User { get; set; }
+    public User User { get; set; }
     public EventEntity Event { get; set; }
 }
