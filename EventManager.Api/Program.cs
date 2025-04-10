@@ -17,20 +17,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 
 builder.Services.Configure<JwtOptions>(
-    builder.Configuration.GetSection(JwtOptions.JwtOptionsKey));
+builder.Configuration.GetSection(JwtOptions.JwtOptionsKey));
 
 // Добавление Identity для пользователя с настройками безопасности пароля
 // и уникальности электронной почты,
 // и подключение к identity information stores через Entity Framework.
-builder.Services.AddIdentity<User, IdentityRole<Guid>>(opt =>
-{
-    opt.Password.RequireDigit = true;
-    opt.Password.RequireLowercase = true;
-    opt.Password.RequireNonAlphanumeric = true;
-    opt.Password.RequireUppercase = true;
-    opt.Password.RequiredLength = 8;
-    opt.User.RequireUniqueEmail = true;
-}).AddEntityFrameworkStores<ApplicationDbContext>(); 
+builder.Services.AddIdentityWithPasswordAndEmailSecurity();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
 {
@@ -72,6 +67,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.AddMappedEndpoints();
+
+app.MapGet("/api/test-events", () => Results.Ok(new List<string> { "NewYear","First september" }))
+    .RequireAuthorization();
 
 app.Run();
 

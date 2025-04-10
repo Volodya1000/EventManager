@@ -34,9 +34,11 @@ public class AccountService : IAccountService
         var user = User.Create(registerRequest.Email, 
             registerRequest.FirstName, registerRequest.LastName, registerRequest.DateOfBirth);
 
-        user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, registerRequest.Password);
 
-        var result = await _userManager.CreateAsync(user);
+        //Эта перегрузка CreateAsync осуществляет валидацию
+        //пароля на соответствие правилам которые описаны
+        //в EventManager.Api.Extensions.ApiExtensions.AddIdentityWithPasswordAndEmailSecurity
+        var result = await _userManager.CreateAsync(user, registerRequest.Password);
 
         if (!result.Succeeded)
         {

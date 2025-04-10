@@ -1,5 +1,11 @@
-﻿using EventManager.Domain.Options;
+﻿using EventManager.Api.Endpoints;
+using EventManager.Domain.Models;
+using EventManager.Domain.Options;
+using EventManager.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -9,7 +15,7 @@ public static class ApiExtensions
 {
     public static void AddMappedEndpoints(this IEndpointRouteBuilder app)
     {
-
+        app.MapUserEndpoints();
     }
 
     public static void AddApiAuthentication(
@@ -47,5 +53,20 @@ public static class ApiExtensions
                 }
             };
         });
+    }
+
+    public static void AddIdentityWithPasswordAndEmailSecurity(
+    this IServiceCollection services)
+    {
+        services.AddIdentity<User, IdentityRole<Guid>>(opt =>
+        {
+            opt.Password.RequireDigit = true;
+            opt.Password.RequireLowercase = true;
+            opt.Password.RequireNonAlphanumeric = true;
+            opt.Password.RequireUppercase = true;
+            opt.Password.RequiredLength = 8;
+            opt.User.RequireUniqueEmail = true;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>();
     }
 }
