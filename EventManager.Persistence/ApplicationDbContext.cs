@@ -14,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<EventEntity> Events { get; set; }
     public DbSet<ParticipantEntity> Participants { get; set; }
     public DbSet<CategoryEntity> Categories { get; set; }
+    public DbSet<ImageEntity> Images { get; set; }
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
           : base(options)

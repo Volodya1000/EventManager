@@ -28,30 +28,3 @@ public class User : IdentityUser<Guid>
         return FirstName + " " + LastName;
     }
 }
-
-//public class User : IdentityUser<Guid>
-//{
-//    public required string FirstName { get; init; }
-//    public required string LastName { get; init; }
-//    public DateTime DateOfBirth { get; init; }
-//    public string? RefreshToken { get; set; }
-//    public DateTime? RefreshTokenExpiresAtUtc { get; set; }
-
-//    public User(
-//        Guid id,
-//        string firstName,
-//        string lastName,
-//        DateTime dateOfBirth,
-//        string email,
-//        string passwordHash,
-//        string? RefreshToken,
-//        DateTime? RefreshTokenExpiresAtUtc)
-//    {
-//        Id = id;
-//        FirstName = firstName;
-//        LastName = lastName;
-//        DateOfBirth = dateOfBirth;
-//        Email = email;
-//        PasswordHash = passwordHash;
-//    }
-//}

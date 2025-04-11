@@ -129,6 +129,12 @@ public class AccountService : IAccountService
             _logger.LogError("Role promotion failed for user with email:{Email}: {Errors}", email, errors);
             throw new PromotionFailedException(email,IdentityRoleConstants.Admin,errors);
         }
+
+        // Получаем оставшееся время текущего токена
+        TimeSpan remainingTime = user.RefreshTokenExpiresAtUtc.HasValue
+            ? user.RefreshTokenExpiresAtUtc.Value - DateTime.UtcNow
+            : TimeSpan.FromDays(7); // Если токена нет, используем дефолт
+
         _logger.LogInformation("User with email:{Email} promoted to Admin role", email);
     }
 }
