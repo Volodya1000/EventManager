@@ -9,7 +9,6 @@ public class Participant
     public string LastName { get; set; }
     public DateTime DateOfBirth { get; set; }
 
-
     private Participant(
         Guid userId,
         Guid eventId,
