@@ -22,7 +22,7 @@ public class AuthTokenProcessor : IAuthTokenProcessor
         _jwtOptions = jwtOptions.Value;
     }
 
-    public (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(User user)
+    public (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(User user, IList<string> roles)
     {
         // Создание симметричного ключа безопасности из секретного ключа JWT.
         var signingKey = new SymmetricSecurityKey(
@@ -33,14 +33,14 @@ public class AuthTokenProcessor : IAuthTokenProcessor
             signingKey,
             SecurityAlgorithms.HmacSha256);
 
-        // Создание массива claims, которые будут включены в токен.
-        var claims = new[]
+        // Создание списка claims, которые будут включены в токен.
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // Идентификатор субъекта
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Уникальный идентификатор токена
             new Claim(JwtRegisteredClaimNames.Email, user.Email), // Адрес электронной почты
             new Claim(ClaimTypes.NameIdentifier, user.ToString())// Идентификатор имени В ToString() Имя + Фамилия
-        };
+        }.Concat(roles.Select(r => new Claim(ClaimTypes.Role, r))); ;
 
         // Вычисление времени истечения срока действия токена
         var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationTimeInMinutes);

@@ -5,6 +5,8 @@ using EventManager.Domain.Exceptions;
 using EventManager.Domain.Requests;
 using Microsoft.AspNetCore.Identity;
 using EventManager.Application.Interfaces.Repositories;
+using EventManager.Domain.Constants;
+using EventManager.Domain.Enums;
 
 namespace EventManager.Application.Services;
 
@@ -44,6 +46,8 @@ public class AccountService : IAccountService
         {
             throw new RegistrationFailedException(result.Errors.Select(x => x.Description));
         }
+
+        await _userManager.AddToRoleAsync(user, GetIdentityRoleName(registerRequest.Role));
     }
 
     public async Task LoginAsync(LoginRequest loginRequest)
@@ -55,7 +59,9 @@ public class AccountService : IAccountService
             throw new LoginFailedException(loginRequest.Email);
         }
 
-        var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+
+        var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user, roles);
         var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
 
         var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
@@ -100,5 +106,14 @@ public class AccountService : IAccountService
         
         _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
         _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+    }
+
+    private string GetIdentityRoleName(Role role)
+    {
+        return role switch
+        {
+            Role.User => IdentityRoleConstants.User,
+            _ => throw new ArgumentOutOfRangeException(nameof(role), role, "Provided role is not supported.")
+        };
     }
 }
