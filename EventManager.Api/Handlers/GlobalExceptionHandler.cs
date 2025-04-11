@@ -33,6 +33,9 @@ public class GlobalExceptionHandler : IExceptionHandler
             UserAlreadyExistsException => (HttpStatusCode.Conflict, exception.Message),
             RegistrationFailedException => (HttpStatusCode.BadRequest, exception.Message),
             RefreshTokenException => (HttpStatusCode.Unauthorized, exception.Message),
+            UserNotFoundException => (HttpStatusCode.NotFound, exception.Message),
+            UserAlreadyAdminException => (HttpStatusCode.Conflict, exception.Message),
+            PromotionFailedException => (HttpStatusCode.BadRequest, exception.Message),
             _ => (HttpStatusCode.InternalServerError, $"An unexpected error occurred: {exception.Message}")
         };
     }

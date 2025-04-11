@@ -46,6 +46,15 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
                     NormalizedName = IdentityRoleConstants.User.ToUpper()
                 }
             });
+
+        // Создание начального админа
+        var adminUser = User.Create(
+            "admin@example.com",
+            "Admin",
+            "Admin",
+            DateTime.UtcNow);
+
+        adminUser.Id = Guid.Parse("...");
     }
 
 }

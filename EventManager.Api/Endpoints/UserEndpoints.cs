@@ -1,6 +1,9 @@
 ﻿
 using EventManager.Application.Interfaces.Services;
+using EventManager.Domain.Constants;
 using EventManager.Domain.Requests;
+using Microsoft.OpenApi.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Api.Endpoints;
 
@@ -13,6 +16,22 @@ public static class UserEndpoints
         accountGroup.MapPost("/register", Register);
         accountGroup.MapPost("/login", Login);
         accountGroup.MapPost("/refresh", RefreshToken);
+
+        app.MapPut("/api/admin/promote/{email}", PromoteToAdmin)
+            .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
+            .WithTags("Admin")
+            .WithOpenApi(operation =>
+            {
+                operation.Summary = "Promote user to admin role";
+                operation.Description = "Requires admin privileges";
+                return operation;
+            })
+            .RequireRateLimiting("admin-promotion-policy")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
 
         return app;
     }
@@ -37,6 +56,14 @@ public static class UserEndpoints
 
         await accountService.RefreshTokenAsync(refreshToken);
 
+        return Results.Ok();
+    }
+
+    private static async Task<IResult> PromoteToAdmin(
+        string email,
+        IAccountService accountService)
+    {
+        await accountService.PromoteUserToAdminAsync(email);
         return Results.Ok();
     }
 }
