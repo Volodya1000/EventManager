@@ -1,4 +1,5 @@
-﻿using EventManager.Domain.Models;
+﻿using EventManager.Domain.Constants;
+using EventManager.Domain.Models;
 using EventManager.Persistence.Configurations;
 using EventManager.Persistence.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -28,6 +29,23 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
         modelBuilder.ApplyConfiguration(new CategoryEntityConfiguration());
 
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<IdentityRole<Guid>>()
+            .HasData(new List<IdentityRole<Guid>>
+            {
+                new IdentityRole<Guid>()
+                {
+                    Id = IdentityRoleConstants.AdminRoleGuid,
+                    Name = IdentityRoleConstants.Admin,
+                    NormalizedName = IdentityRoleConstants.Admin.ToUpper()
+                },
+                new IdentityRole<Guid>()
+                {
+                    Id = IdentityRoleConstants.UserGuid,
+                    Name = IdentityRoleConstants.User,
+                    NormalizedName = IdentityRoleConstants.User.ToUpper()
+                }
+            });
     }
 
 }
