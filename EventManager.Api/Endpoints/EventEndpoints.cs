@@ -16,8 +16,7 @@ public static class EventEndpoints
             .WithOpenApi();
 
         eventGroup.MapGet("/", GetAllEvents)
-            .Produces<List<EventDto>>()
-            .WithDescription("Get all events with optional filtering and pagination");
+            .Produces<List<EventDto>>();
 
         eventGroup.MapGet("/{id}", GetEventById)
             .Produces<EventDto>()
@@ -53,11 +52,11 @@ public static class EventEndpoints
 
 
         // Participants endpoints
-        var participantGroup = eventGroup.MapGroup("/{eventId}/participants")
-            .WithTags("Participants");
+        var participantGroup = app.MapGroup("/api/events{eventId}/participants")
+            .WithTags("Participants")
+            .RequireAuthorization();
 
         participantGroup.MapPost("/", RegisterParticipant)
-            .RequireAuthorization()
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
@@ -65,7 +64,6 @@ public static class EventEndpoints
             .Produces<List<ParticipantDto>>();
 
         participantGroup.MapDelete("/{participantId}", CancelParticipation)
-            .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status403Forbidden);
 
