@@ -2,11 +2,11 @@
 using EventManager.Domain.Requests;
 using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
+using EventManager.Application.Interfaces.Repositories; 
 
 namespace EventManager.Persistence.Repositories;
 
-public class EventRepository //: IEventRepository
+public class EventRepository : IEventRepository
 {
     private readonly ApplicationDbContext _context;
 
@@ -36,7 +36,6 @@ public class EventRepository //: IEventRepository
         return await _context.Events
             .AsNoTracking()
             .Include(e => e.Category)
-            .Include(e => e.Participants)
             .FirstOrDefaultAsync(e => e.Id == id);
     }
 
@@ -57,12 +56,6 @@ public class EventRepository //: IEventRepository
         int maxParticipants,
         List<string>? images = null)
     {
-        var existingImageUrls = await _context.Images.Select(i => i.Url).ToListAsync();
-        var imageEntities = images?.Select(url => existingImageUrls.Contains(url)
-            ? _context.Images.FirstOrDefault(i => i.Url == url)
-            : new ImageEntity { Id = Guid.NewGuid(), Url = url })
-            .ToList() ?? new List<ImageEntity>();
-
         var entity = new EventEntity
         {
             Id = Guid.NewGuid(),
@@ -72,7 +65,9 @@ public class EventRepository //: IEventRepository
             Location = location,
             CategoryId = categoryId,
             MaxParticipants = maxParticipants,
-            Images = imageEntities
+            Images = images?.Select(url
+            => new ImageEntity { Id = Guid.NewGuid(), Url = url })
+            .ToList() ?? new List<ImageEntity>()
         };
 
         await _context.Events.AddAsync(entity);
@@ -91,7 +86,10 @@ public class EventRepository //: IEventRepository
     {
         var entity = await _context.Events.FindAsync(eventId);
         if (entity == null)
-            throw new ArgumentException("Event not found");
+            throw new InvalidOperationException("Event not found");
+
+        if (categoryId.HasValue && !await _context.Categories.AnyAsync(c => c.Id == categoryId))
+            throw new InvalidOperationException("Category not found");
 
         entity.Name = name ?? entity.Name;
         entity.Description = description ?? entity.Description;
@@ -141,7 +139,7 @@ public class EventRepository //: IEventRepository
             query = query.Where(e => e.MaxParticipants <= filter.MaxParticipants.Value);
 
         if (filter.AvailableSpaces.HasValue)
-            query = query.Where(e => e.MaxParticipants - e.Participants.Count >= filter.AvailableSpaces.Value);
+            query = query.Where(e => e.MaxParticipants - e.Participants.Count() >= filter.AvailableSpaces.Value);
 
         var totalRecords = await query.CountAsync();
         var data = await query
@@ -151,6 +149,7 @@ public class EventRepository //: IEventRepository
 
         return new PagedResponse<EventEntity>(data, pageNumber, pageSize, totalRecords);
     }
+
     public async Task AddImageToEventAsync(Guid eventId, string imageUrl)
     {
         var entity = await _context.Events
@@ -158,15 +157,10 @@ public class EventRepository //: IEventRepository
             .FirstOrDefaultAsync(e => e.Id == eventId);
 
         if (entity == null)
-            throw new ArgumentException("Event not found");
-
-        var existingImage = entity.Images.FirstOrDefault(i => i.Url == imageUrl);
-        if (existingImage == null)
-        {
-            var newImage = new ImageEntity { Id = Guid.NewGuid(), Url = imageUrl };
-            entity.Images.Add(newImage);
-            await _context.SaveChangesAsync();
-        }
+            throw new InvalidOperationException("Event not found");
+        var newImage = new ImageEntity { Id = Guid.NewGuid(), Url = imageUrl };
+        entity.Images.Add(newImage);
+        await _context.SaveChangesAsync();
     }
 
     public async Task RemoveImageFromEventAsync(Guid eventId, string imageUrl)
@@ -176,7 +170,7 @@ public class EventRepository //: IEventRepository
             .FirstOrDefaultAsync(e => e.Id == eventId);
 
         if (entity == null)
-            throw new ArgumentException("Event not found");
+            throw new InvalidOperationException("Event not found");
 
         var imageToRemove = entity.Images.FirstOrDefault(i => i.Url == imageUrl);
         if (imageToRemove != null)
