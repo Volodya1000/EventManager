@@ -1,4 +1,5 @@
 ﻿using EventManager.Domain.Models;
+using EventManager.Domain.Requests;
 using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -71,7 +72,7 @@ public class EventRepository //: IEventRepository
             Location = location,
             CategoryId = categoryId,
             MaxParticipants = maxParticipants,
-            ImageUrls = imageEntities
+            Images = imageEntities
         };
 
         await _context.Events.AddAsync(entity);
@@ -114,7 +115,7 @@ public class EventRepository //: IEventRepository
     }
 
     public async Task<PagedResponse<EventEntity>> GetByFilterAsync(
-        EventFilter filter,
+        EventFilterRequest filter,
         int pageNumber,
         int pageSize)
     {
@@ -150,7 +151,6 @@ public class EventRepository //: IEventRepository
 
         return new PagedResponse<EventEntity>(data, pageNumber, pageSize, totalRecords);
     }
-
     public async Task AddImageToEventAsync(Guid eventId, string imageUrl)
     {
         var entity = await _context.Events
@@ -160,9 +160,11 @@ public class EventRepository //: IEventRepository
         if (entity == null)
             throw new ArgumentException("Event not found");
 
-        if (!entity.Images.Contains(imageUrl))
+        var existingImage = entity.Images.FirstOrDefault(i => i.Url == imageUrl);
+        if (existingImage == null)
         {
-            entity.Images.Add(imageUrl);
+            var newImage = new ImageEntity { Id = Guid.NewGuid(), Url = imageUrl };
+            entity.Images.Add(newImage);
             await _context.SaveChangesAsync();
         }
     }
@@ -176,8 +178,10 @@ public class EventRepository //: IEventRepository
         if (entity == null)
             throw new ArgumentException("Event not found");
 
-        if (entity.Images.Remove(imageUrl))
+        var imageToRemove = entity.Images.FirstOrDefault(i => i.Url == imageUrl);
+        if (imageToRemove != null)
         {
+            entity.Images.Remove(imageToRemove);
             await _context.SaveChangesAsync();
         }
     }

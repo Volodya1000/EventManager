@@ -11,7 +11,7 @@ public class EventEntity
     public required string Location { get; set; } 
     public Guid CategoryId { get; set; }
     public int MaxParticipants { get; set; }
-    public ICollection<ImageEntity> ImageUrls { get; set; } = new List<ImageEntity>();
+    public ICollection<ImageEntity> Images { get; set; } = new List<ImageEntity>();
 
     public CategoryEntity Category { get; set; }
     public ICollection<ParticipantEntity> Participants { get; set; } = new List<ParticipantEntity>();
