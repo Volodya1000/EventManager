@@ -2,7 +2,7 @@
 using EventManager.Application.Interfaces.Services;
 using EventManager.Domain.Models;
 using EventManager.Domain.Exceptions;
-using EventManager.Domain.Requests;
+using EventManager.Application.Requests;
 using Microsoft.AspNetCore.Identity;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Domain.Constants;

@@ -1,6 +1,6 @@
 ﻿using EventManager.Application.Dtos;
 using EventManager.Application.Interfaces.Services;
-using EventManager.Domain.Requests;
+using EventManager.Application.Requests;
 using global::EventManager.Domain.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;

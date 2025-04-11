@@ -1,7 +1,7 @@
 ﻿
 using EventManager.Application.Interfaces.Services;
 using EventManager.Domain.Constants;
-using EventManager.Domain.Requests;
+using EventManager.Application.Requests;
 using Microsoft.OpenApi.Models;
 using System.ComponentModel.DataAnnotations;
 

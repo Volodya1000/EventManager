@@ -1,5 +1,5 @@
 ﻿using EventManager.Application.Dtos;
-using EventManager.Domain.Requests;
+using EventManager.Application.Requests;
 using Microsoft.AspNetCore.Http;
 
 namespace EventManager.Application.Interfaces.Services;

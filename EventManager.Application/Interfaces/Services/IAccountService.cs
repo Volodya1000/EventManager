@@ -1,4 +1,4 @@
-﻿using EventManager.Domain.Requests;
+﻿using EventManager.Application.Requests;
 
 namespace EventManager.Application.Interfaces.Services;
 

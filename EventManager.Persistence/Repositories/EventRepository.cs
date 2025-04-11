@@ -1,5 +1,5 @@
 ﻿using EventManager.Domain.Models;
-using EventManager.Domain.Requests;
+using EventManager.Application.Requests;
 using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using EventManager.Application.Interfaces.Repositories; 

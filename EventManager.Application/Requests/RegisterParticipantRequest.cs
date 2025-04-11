@@ -1,4 +1,4 @@
-﻿namespace EventManager.Domain.Requests;
+﻿namespace EventManager.Application.Requests;
 
 public record RegisterParticipantRequest
 {
