@@ -4,6 +4,7 @@ using EventManager.Application.Interfaces.AuthTokenProcessor;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Services;
+using EventManager.Domain.Constants;
 using EventManager.Domain.Models;
 using EventManager.Domain.Options;
 using EventManager.Infrastructure.Processors;
@@ -70,6 +71,12 @@ app.AddMappedEndpoints();
 
 app.MapGet("/api/test-events", () => Results.Ok(new List<string> { "NewYear","First september" }))
     .RequireAuthorization();
+
+app.MapGet("/api/only-admin", () => Results.Ok(new { Message = "Admin information" }))
+    .RequireAuthorization(policy => policy.RequireRole(new List<string>
+    {
+        IdentityRoleConstants.Admin
+    }));
 
 app.Run();
 

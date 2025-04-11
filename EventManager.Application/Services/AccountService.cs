@@ -93,8 +93,10 @@ public class AccountService : IAccountService
         {
             throw new RefreshTokenException("Refresh token is expired.");
         }
-        
-        var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
+
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+
+        var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user, roles);
         var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
 
         var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
