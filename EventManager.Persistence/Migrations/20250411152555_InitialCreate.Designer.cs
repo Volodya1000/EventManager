@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EventManager.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250411063827_AddedRoles")]
-    partial class AddedRoles
+    [Migration("20250411152555_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -107,6 +107,27 @@ namespace EventManager.Persistence.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("ab4456be-2623-4808-9426-1a1f09ae956f"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "fixed-user-concurrency-stamp",
+                            DateOfBirth = new DateTime(2000, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "admin@example.com",
+                            EmailConfirmed = true,
+                            FirstName = "Admin",
+                            LastName = "Admin",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@EXAMPLE.COM",
+                            NormalizedUserName = "ADMIN@EXAMPLE.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKRnSu3AUnjUGydDa4WyUFwhI9T4W36QwBl7MlqqdDasp+6zKhjkEh3DIvHrHFBTgQ==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "fixed-security-stamp",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@example.com"
+                        });
                 });
 
             modelBuilder.Entity("EventManager.Persistence.Entities.CategoryEntity", b =>
@@ -141,10 +162,6 @@ namespace EventManager.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -163,6 +180,26 @@ namespace EventManager.Persistence.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Events", (string)null);
+                });
+
+            modelBuilder.Entity("EventManager.Persistence.Entities.ImageEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("Images", (string)null);
                 });
 
             modelBuilder.Entity("EventManager.Persistence.Entities.ParticipantEntity", b =>
@@ -313,6 +350,13 @@ namespace EventManager.Persistence.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = new Guid("ab4456be-2623-4808-9426-1a1f09ae956f"),
+                            RoleId = new Guid("5d8d3cc8-4fde-4c21-a70b-deaf8ebe51a2")
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -343,6 +387,13 @@ namespace EventManager.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("EventManager.Persistence.Entities.ImageEntity", b =>
+                {
+                    b.HasOne("EventManager.Persistence.Entities.EventEntity", null)
+                        .WithMany("ImageUrls")
+                        .HasForeignKey("EventId");
                 });
 
             modelBuilder.Entity("EventManager.Persistence.Entities.ParticipantEntity", b =>
@@ -422,6 +473,8 @@ namespace EventManager.Persistence.Migrations
 
             modelBuilder.Entity("EventManager.Persistence.Entities.EventEntity", b =>
                 {
+                    b.Navigation("ImageUrls");
+
                     b.Navigation("Participants");
                 });
 #pragma warning restore 612, 618

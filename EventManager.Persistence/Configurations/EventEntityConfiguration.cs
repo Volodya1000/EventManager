@@ -24,5 +24,9 @@ public class EventEntityConfiguration : IEntityTypeConfiguration<EventEntity>
         builder.HasMany(e => e.Participants)
             .WithOne(p => p.Event)
             .HasForeignKey(p => p.EventId);
+
+        builder.HasMany(e => e.ImageUrls)
+        .WithOne()
+        .HasForeignKey("EventId");
     }
 }

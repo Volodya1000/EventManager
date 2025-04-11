@@ -4,10 +4,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace EventManager.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -184,8 +186,7 @@ namespace EventManager.Persistence.Migrations
                     DateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Location = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
                     CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MaxParticipants = table.Column<int>(type: "integer", nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: false)
+                    MaxParticipants = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -196,6 +197,24 @@ namespace EventManager.Persistence.Migrations
                         principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Images",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Url = table.Column<string>(type: "text", nullable: false),
+                    EventId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Images", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Images_Events_EventId",
+                        column: x => x.EventId,
+                        principalTable: "Events",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -223,6 +242,25 @@ namespace EventManager.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.InsertData(
+                table: "AspNetRoles",
+                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { new Guid("5d8d3cc8-4fde-4c21-a70b-deaf8ebe51a2"), null, "Admin", "ADMIN" },
+                    { new Guid("66dddd1c-bf05-4032-b8a5-6adbf73dc09e"), null, "User", "USER" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "AspNetUsers",
+                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "DateOfBirth", "Email", "EmailConfirmed", "FirstName", "LastName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "RefreshToken", "RefreshTokenExpiresAtUtc", "SecurityStamp", "TwoFactorEnabled", "UserName" },
+                values: new object[] { new Guid("ab4456be-2623-4808-9426-1a1f09ae956f"), 0, "fixed-user-concurrency-stamp", new DateTime(2000, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@example.com", true, "Admin", "Admin", false, null, "ADMIN@EXAMPLE.COM", "ADMIN@EXAMPLE.COM", "AQAAAAIAAYagAAAAEKRnSu3AUnjUGydDa4WyUFwhI9T4W36QwBl7MlqqdDasp+6zKhjkEh3DIvHrHFBTgQ==", null, false, null, null, "fixed-security-stamp", false, "admin@example.com" });
+
+            migrationBuilder.InsertData(
+                table: "AspNetUserRoles",
+                columns: new[] { "RoleId", "UserId" },
+                values: new object[] { new Guid("5d8d3cc8-4fde-4c21-a70b-deaf8ebe51a2"), new Guid("ab4456be-2623-4808-9426-1a1f09ae956f") });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -267,6 +305,11 @@ namespace EventManager.Persistence.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Images_EventId",
+                table: "Images",
+                column: "EventId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Participants_EventId",
                 table: "Participants",
                 column: "EventId");
@@ -295,6 +338,9 @@ namespace EventManager.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Images");
 
             migrationBuilder.DropTable(
                 name: "Participants");

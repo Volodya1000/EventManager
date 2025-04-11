@@ -1,5 +1,4 @@
 ﻿using EventManager.Domain.Models;
-using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
