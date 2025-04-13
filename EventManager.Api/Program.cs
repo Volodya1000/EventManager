@@ -58,11 +58,11 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider("/data/uploads"),
-    RequestPath = "/uploads"
-});
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider("/data/uploads"),
+//    RequestPath = "/uploads"
+//});
 
 if (app.Environment.IsDevelopment())
 {

@@ -62,9 +62,9 @@ public class EventService : IEventService
         await _eventRepository.DeleteAsync(id);
     }  
 
-    public async Task<EventDto?> GetByIdAsync(Guid id)
+    public async Task<EventDto?> GetByIdAsync(Guid eventId)
     {
-        var eventById = await _eventRepository.GetByIdAsync(id);
+        var eventById = await _eventRepository.GetByIdAsync(eventId);
 
         return _mapper.Map<EventDto>(eventById);
     }
@@ -119,7 +119,4 @@ public class EventService : IEventService
 
         await _eventRepository.DeleteImageAsync(eventId, url);
     }
-
-
-
 }

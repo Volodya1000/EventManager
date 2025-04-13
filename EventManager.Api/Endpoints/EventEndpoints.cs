@@ -45,14 +45,6 @@ public static class EventEndpoints
                 Description = "Filter by date, location, category"
             });
 
-        eventGroup.MapPost("/{id}/images", UploadEventImage)
-            .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
-            .Produces<string>();
-
-        eventGroup.MapDelete("/{id}/images/{url}", DeleteEventImage)
-            .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
-            .Produces<string>();
-
         return app;
     }
 
