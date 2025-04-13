@@ -235,4 +235,33 @@ public class EventRepository : IEventRepository
             await _context.SaveChangesAsync();
         }
     }
+
+
+    public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(
+        Guid eventId, 
+        int pageNumber = 1, 
+        int pageSize = 10)
+        {
+        var query = _context.Participants
+            .AsNoTracking()
+            .Include(p => p.User)
+            .Where(p => p.EventId == eventId);
+
+        var totalCount = await query.CountAsync();
+
+        var participants = await query
+            .OrderBy(p => p.RegistrationDate)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var participantDtos = _mapper.Map<List<ParticipantDto>>(participants);
+
+        return new PagedResponse<ParticipantDto>(
+            participantDtos, 
+            pageNumber, 
+            pageSize, 
+            totalCount
+        );
+    }
 }

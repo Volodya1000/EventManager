@@ -18,13 +18,17 @@ public class EventService : IEventService
 
     private readonly IFileStorage _fileStorage;
 
+    private readonly IUserRepository _userRepository;
+
     public EventService(IEventRepository eventRepository,
                         IMapper mapper,
-                        IFileStorage fileStorage)
+                        IFileStorage fileStorage,
+                        IUserRepository userRepository)
     {
         _eventRepository = eventRepository;
         _mapper = mapper;
         _fileStorage = fileStorage;
+        _userRepository = userRepository;
     }
 
     #region OperationsWithEvents
@@ -119,9 +123,9 @@ public class EventService : IEventService
         throw new NotImplementedException();
     }
 
-    public async Task<Guid> RegisterAsync(Guid eventId, RegisterParticipantRequest request)
+    public async Task<Guid> RegisterAsync(RegisterParticipantRequest request)
     {
-        throw new NotImplementedException();
+        return await _userRepository.GetUserById(request.UserId);
     }
 
     public async Task CancelAsync(Guid eventId, Guid userId)

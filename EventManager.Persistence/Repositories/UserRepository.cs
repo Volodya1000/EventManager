@@ -15,8 +15,16 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetUserByRefreshTokenAsync(string refreshToken)
     {
-        var user = await _applicationDbContext.Users.FirstOrDefaultAsync(x => x.RefreshToken == refreshToken);
+        return await _applicationDbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.RefreshToken == refreshToken);
+    }
 
-        return user;
+    public async Task<User?> GetUserById(Guid id)
+    {
+        return await _applicationDbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
     }
 }
