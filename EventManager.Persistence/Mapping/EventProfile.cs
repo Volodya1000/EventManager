@@ -10,14 +10,17 @@ public class EventProfile : Profile
     public EventProfile()
     {
         CreateMap<EventEntity, EventDto>()
-            .ForMember(dest => dest.Category,
-                opt => opt.MapFrom(src => src.Category.Name))
-            .ForMember(dest => dest.RegisteredParticipants,
-                opt => opt.MapFrom(src => src.Participants.Count))
-            .ForMember(dest => dest.ImageUrls,
-                opt => opt.MapFrom(src => src.Images.Select(i => i.Url).ToList()))
-            .ForMember(dest => dest.ParticipantsIds,
-                opt => opt.MapFrom(src => src.Participants.Select(p => p.UserId).ToList()));
+           .ConstructUsing((src) => new EventDto(
+               src.Id,
+               src.Name,
+               src.Description,
+               src.DateTime,
+               src.Location,
+               src.Category.Name,
+               src.MaxParticipants,
+               src.Participants.Count,
+               src.Images.Select(i => i.Url).ToList(),
+               src.Participants.Select(p => p.UserId).ToList()));
 
         CreateMap<EventEntity, Event>()
                .ConstructUsing(src => Event.Create(
