@@ -1,4 +1,5 @@
 ﻿
+using EventManager.Application.Services;
 using global::EventManager.Application.Interfaces.Services;
 using global::EventManager.Domain.Constants;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -48,7 +49,7 @@ public static class ImagesEndpoints
     private static async Task<IResult> GetEventImage(
         Guid eventId,
         string filename,
-        [FromServices] IImageService imageService)
+        [FromServices] IEventService eventService)
     {
         try
         {
@@ -96,18 +97,18 @@ public static class ImagesEndpoints
     private static async Task<IResult> UploadEventImage(
         Guid eventId,
         IFormFile image,
-        [FromServices] IImageService imageService)
+        [FromServices] IEventService eventService)
     {
-        var imageUrl = await imageService.UploadEventImageAsync(eventId, image);
+        var imageUrl = await eventService.UploadImageAsync(eventId, image);
         return Results.Created($"/api/events/{eventId}/images/{Path.GetFileName(imageUrl)}", imageUrl);
     }
 
     private static async Task<IResult> DeleteEventImage(
         Guid eventId,
         string filename,
-        [FromServices] IImageService imageService)
+        [FromServices] IEventService eventService)
     {
-        await imageService.DeleteEventImageAsync(eventId, filename);
+        await eventService.DeleteImageAsync(eventId, filename);
         return Results.NoContent();
     }
 }

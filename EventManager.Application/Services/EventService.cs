@@ -27,6 +27,7 @@ public class EventService : IEventService
         _fileStorage = fileStorage;
     }
 
+    #region OperationsWithEvents
     public async Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize)
     {
         return await _eventRepository.GetAllAsync(page, pageSize);
@@ -49,14 +50,6 @@ public class EventService : IEventService
         return newEvent.Id; 
     }
 
-
-    public async Task CancelAsync(Guid eventId, Guid userId)
-    {
-        throw new NotImplementedException();
-    }
-
-    
-
     public async Task DeleteAsync(Guid id)
     {
         await _eventRepository.DeleteAsync(id);
@@ -67,21 +60,6 @@ public class EventService : IEventService
         var eventById = await _eventRepository.GetByIdAsync(eventId);
 
         return _mapper.Map<EventDto>(eventById);
-    }
-
-    public async Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize)
-    {
-        return await _eventRepository.GetFilteredAsync(filterRequest, page, pageSize);
-    }
-
-    public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<Guid> RegisterAsync(Guid eventId, RegisterParticipantRequest request)
-    {
-        throw new NotImplementedException();
     }
 
     public async Task UpdateAsync(Guid eventId, UpdateEventRequest request)
@@ -97,9 +75,15 @@ public class EventService : IEventService
 
         await _eventRepository.UpdateAsync(eventById);
     }
+    #endregion
 
 
-    public  async Task<string> UploadImageAsync(Guid eventId, IFormFile image)
+
+
+    #region OperationsWithImages
+
+
+    public async Task<string> UploadImageAsync(Guid eventId, IFormFile image)
     {
         string imageUrl = await _fileStorage.SaveFile(image);
 
@@ -119,4 +103,32 @@ public class EventService : IEventService
 
         await _eventRepository.DeleteImageAsync(eventId, url);
     }
+
+    #endregion
+
+
+
+    #region OperationsWithParticipants
+    public async Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize)
+    {
+        return await _eventRepository.GetFilteredAsync(filterRequest, page, pageSize);
+    }
+
+    public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<Guid> RegisterAsync(Guid eventId, RegisterParticipantRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task CancelAsync(Guid eventId, Guid userId)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    #endregion
 }
