@@ -23,7 +23,7 @@ public static class EventEndpoints
             .Produces(StatusCodes.Status404NotFound);
 
         eventGroup.MapPost("/", CreateEvent)
-            .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
+            //.RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
             .Accepts<CreateEventRequest>("application/json")
             .Produces(StatusCodes.Status201Created);
 

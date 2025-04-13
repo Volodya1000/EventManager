@@ -60,6 +60,24 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
                 UserId = adminUser.Id
             }
         );
+
+        SeedInitialCategories(modelBuilder);
+    }
+
+    private void SeedInitialCategories(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CategoryEntity>().HasData(
+            new CategoryEntity { Id = Guid.Parse("7e345e1a-9b5a-4c5e-8d2a-3e7f4b5c6d7e"), Name = "Conferences" },
+            new CategoryEntity { Id = Guid.Parse("8f456f2b-9c6b-5d6f-9e3b-4f8a5c6d7e8f"), Name = "Workshops" },
+            new CategoryEntity { Id = Guid.Parse("9a567f3c-ad7c-6e7f-0f4c-5d9b8a7c6d5e"), Name = "Festivals" },
+            new CategoryEntity { Id = Guid.Parse("bcd89e4d-be8d-7f8a-1e5d-6e0c9b8a7f6e"), Name = "Meetups" },
+            new CategoryEntity { Id = Guid.Parse("cde9af5e-cf9e-8a9b-2b6e-7f1dac9b8e7f"), Name = "Exhibitions" },
+            new CategoryEntity { Id = Guid.Parse("def0b06f-d0af-9bac-3c7f-8a2ebdac9f8a"), Name = "Concerts" },
+            new CategoryEntity { Id = Guid.Parse("ef1a0170-e1b0-acbd-4d80-9b3fcebda0a9"), Name = "Sports" },
+            new CategoryEntity { Id = Guid.Parse("f02b1281-f2c1-bdce-5e91-ac40dfceb1ba"), Name = "Seminar" },
+            new CategoryEntity { Id = Guid.Parse("013c2392-03d2-cedf-6fa2-bd51e0cfd2cb"), Name = "Weddings" },
+            new CategoryEntity { Id = Guid.Parse("124d34a3-14e3-dfe0-70b3-ce62f1d0e3dc"), Name = "Charity" }
+        );
     }
 
     private User CreateInitialAdmin()

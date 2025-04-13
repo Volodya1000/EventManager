@@ -16,9 +16,5 @@ public class CategoryEntityConfiguration : IEntityTypeConfiguration<CategoryEnti
         builder.Property(c => c.Name)
             .IsRequired()
             .HasMaxLength(100);
-
-        builder.HasMany(c => c.Events)
-            .WithOne(e => e.Category)
-            .HasForeignKey(e => e.CategoryId);
     }
 }

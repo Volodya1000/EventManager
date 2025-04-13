@@ -21,9 +21,21 @@ public class EventService : IEventService
         return await _eventRepository.GetAllAsync(page, pageSize);
     }
 
-    public Task<int> CreateAsync(CreateEventRequest request)
+    public async Task<Guid> CreateAsync(CreateEventRequest request)
     {
-        throw new NotImplementedException();
+        var newEvent = Event.Create(
+            Guid.NewGuid(),
+            request.Name,
+            request.Description,
+            request.DateTime,
+            request.Location,
+            request.Category,
+            request.MaxParticipants,
+            request.ImageUrls.ToList());
+
+        await _eventRepository.AddAsync(newEvent);
+
+        return newEvent.Id; 
     }
 
 

@@ -10,7 +10,7 @@ public interface IEventService
     Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize);
     Task<List<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize);
     Task<EventDto?> GetByIdAsync(int id);
-    Task<int> CreateAsync(CreateEventRequest request);
+    Task<Guid> CreateAsync(CreateEventRequest request);
     Task UpdateAsync(int id, UpdateEventRequest request);
     Task DeleteAsync(int id);
     Task<string> UploadImageAsync(int id, IFormFile image);

@@ -33,16 +33,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionString"));
 });
 
+builder.Services.AddAutoMapper(
+    typeof(EventManager.Persistence.Mapping.EventProfile).Assembly
+);
+
 //Регистрация в DI контейнер
 builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEventService, EventService>();
-
-builder.Services.AddAutoMapper(
-    typeof(EventManager.Persistence.Mapping.EventProfile).Assembly
-);
-
+builder.Services.AddScoped<IEventRepository, EventRepository>();
 
 builder.Services.AddApiAuthentication(builder.Configuration);
 
