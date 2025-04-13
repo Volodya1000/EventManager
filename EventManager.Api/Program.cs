@@ -1,6 +1,7 @@
 using EventManager.Api.Extensions;
 using EventManager.API.Handlers;
 using EventManager.Application.FileStorage;
+using EventManager.Application.Interfaces;
 using EventManager.Application.Interfaces.AuthTokenProcessor;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
@@ -11,6 +12,7 @@ using EventManager.Domain.Options;
 using EventManager.Infrastructure.Processors;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
+using EventManager.Persistence.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -45,6 +47,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 
 builder.Services.AddApiAuthentication(builder.Configuration);

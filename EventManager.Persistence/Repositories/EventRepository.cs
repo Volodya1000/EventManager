@@ -217,7 +217,7 @@ public class EventRepository : IEventRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteImageAsync(Guid eventId, string imageUrl)
+    public async Task DeleteImageAsyncWithoutCommit(Guid eventId, string imageUrl)
     {
         var entity = await _context.Events
             .Include(e => e.Images)
@@ -228,10 +228,7 @@ public class EventRepository : IEventRepository
 
         var imageToRemove = entity.Images.FirstOrDefault(i => i.Url == imageUrl);
         if (imageToRemove != null)
-        {
             entity.Images.Remove(imageToRemove);
-            await _context.SaveChangesAsync();
-        }
     }
 
 

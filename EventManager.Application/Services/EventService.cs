@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using EventManager.Application.Dtos;
 using EventManager.Application.FileStorage;
+using EventManager.Application.Interfaces;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 
 namespace EventManager.Application.Services;
 
@@ -20,15 +20,20 @@ public class EventService : IEventService
 
     private readonly IUserRepository _userRepository;
 
+    private readonly IUnitOfWork _unitOfWork;
+
+
     public EventService(IEventRepository eventRepository,
                         IMapper mapper,
                         IFileStorage fileStorage,
-                        IUserRepository userRepository)
+                        IUserRepository userRepository,
+                        IUnitOfWork unitOfWork)
     {
         _eventRepository = eventRepository;
         _mapper = mapper;
         _fileStorage = fileStorage;
         _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
     #region OperationsWithEvents
@@ -102,14 +107,18 @@ public class EventService : IEventService
 
     public async Task DeleteImageAsync(Guid eventId, string url)
     {
-        var eventById = await _eventRepository.GetByIdAsync(eventId);
-
-        if (eventById == null) throw new InvalidOperationException($"Event with id: {eventId} not found");
-
-
-        await _fileStorage.DeleteFile(url);
-
-        await _eventRepository.DeleteImageAsync(eventId, url);
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            await _eventRepository.DeleteImageAsyncWithoutCommit(eventId, url); // Метод Без SaveChanges
+            await _fileStorage.DeleteFile(url);
+            await _unitOfWork.CommitAsync(); // Сохранение + коммит транзакции
+        }
+        catch
+        {
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
     }
 
     #endregion
@@ -174,3 +183,6 @@ public class EventService : IEventService
 
     #endregion
 }
+
+
+

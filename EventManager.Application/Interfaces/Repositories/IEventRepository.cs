@@ -24,7 +24,7 @@ public interface IEventRepository
 
     public Task AddImageToEventAsync(Guid eventId, string imageUrl);
 
-    public Task DeleteImageAsync(Guid eventId, string imageUrl);
+    public Task DeleteImageAsyncWithoutCommit(Guid eventId, string imageUrl);
 
     public Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId,
                                                                 int pageNumber,
