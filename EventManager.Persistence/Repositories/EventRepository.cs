@@ -20,6 +20,7 @@ public class EventRepository : IEventRepository
         _mapper = mapper;
     }
 
+    #region OperationsWithEvents
     public async Task<PagedResponse<EventDto>> GetAllAsync(int pageNumber, int pageSize)
     {
         var query = _context.Events
@@ -206,6 +207,14 @@ public class EventRepository : IEventRepository
         return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
     }
 
+
+    #endregion
+
+
+
+
+    #region OperationsWithImages
+
     public async Task AddImageToEventAsync(Guid eventId, string imageUrl)
     {
         var entity = await _context.Events
@@ -237,6 +246,11 @@ public class EventRepository : IEventRepository
     }
 
 
+    #endregion
+
+
+
+    #region OperationsWithParticipants
     public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(
         Guid eventId, 
         int pageNumber = 1, 
@@ -264,4 +278,6 @@ public class EventRepository : IEventRepository
             totalCount
         );
     }
+
+    #endregion
 }

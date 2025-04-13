@@ -32,7 +32,7 @@ public static class ParticipantEndpoints
         [FromBody] RegisterParticipantRequest request,
         IEventService service)
     {
-        var participationId = await service.RegisterAsync(eventId, request);
+        var participationId = await service.RegisterAsync(request);
         return Results.Created($"/api/events/{eventId}/participants/{participationId}", participationId);
     }
 
