@@ -2,50 +2,66 @@
 using EventManager.Application.Requests;
 using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
-using EventManager.Application.Interfaces.Repositories; 
+using EventManager.Application.Interfaces.Repositories;
+using EventManager.Application.Dtos;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 namespace EventManager.Persistence.Repositories;
 
 public class EventRepository : IEventRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public EventRepository(ApplicationDbContext context)
+    public EventRepository(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
-    public async Task<PagedResponse<EventEntity>> GetAllAsync(int pageNumber, int pageSize)
+    public async Task<PagedResponse<EventDto>> GetAllAsync(int pageNumber, int pageSize)
     {
         var query = _context.Events
             .AsNoTracking()
-            .Include(e => e.Category)
-            .Include(e => e.Participants);
+            .ProjectTo<EventDto>(_mapper.ConfigurationProvider); //проекция для оптимального sql запроса
 
         var totalRecords = await query.CountAsync();
         var data = await query
+            .OrderBy(e => e.DateTime)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        return new PagedResponse<EventEntity>(data, pageNumber, pageSize, totalRecords);
+        return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
     }
 
-    public async Task<EventEntity?> GetByIdAsync(Guid id)
+    public async Task<Event?> GetByIdAsync(Guid id)
     {
-        return await _context.Events
+        var entity = await _context.Events
             .AsNoTracking()
             .Include(e => e.Category)
+            .Include(e => e.Images)
+            .Include(e => e.Participants)
+                .ThenInclude(p => p.User)
             .FirstOrDefaultAsync(e => e.Id == id);
+
+        return entity != null ? _mapper.Map<Event>(entity) : null;
     }
 
-    public async Task<EventEntity?> GetByNameAsync(string name)
+    public async Task<Event?> GetByNameAsync(string name)
     {
-        return await _context.Events
+        var entity = await _context.Events
             .AsNoTracking()
             .Include(e => e.Category)
+            .Include(e => e.Images)
+            .Include(e => e.Participants)
+                .ThenInclude(p => p.User)
             .FirstOrDefaultAsync(e => e.Name == name);
+
+        return entity != null ? _mapper.Map<Event>(entity) : null;
     }
+
 
     public async Task<EventEntity> AddAsync(
         string name,
@@ -119,8 +135,9 @@ public class EventRepository : IEventRepository
     {
         var query = _context.Events
             .AsNoTracking()
-            .Include(e => e.Category)
-            .Include(e => e.Participants)
+             .Include(e => e.Category)
+             .Include(e => e.Images)
+             .Include(e => e.Participants)
             .AsQueryable();
 
         if (filter.DateFrom.HasValue)

@@ -1,6 +1,4 @@
-﻿using EventManager.Domain.Models;
-
-namespace EventManager.Persistence.Entities;
+﻿namespace EventManager.Persistence.Entities;
 
 public class EventEntity
 {

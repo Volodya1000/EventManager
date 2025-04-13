@@ -39,6 +39,11 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEventService, EventService>();
 
+builder.Services.AddAutoMapper(
+    typeof(EventManager.Persistence.Mapping.EventProfile).Assembly
+);
+
+
 builder.Services.AddApiAuthentication(builder.Configuration);
 
 builder.Services.AddAuthorization();

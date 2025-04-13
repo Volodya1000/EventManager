@@ -2,18 +2,18 @@
 public class Event
 {
     public Guid Id { get; }
-    public string Name { get; }
-    public string Description { get; }
-    public DateTime DateTime { get; }
-    public string Location { get; }
-    public Guid CategoryId { get; }
-    public int MaxParticipants { get; }
+    public string Name { get;  }
+    public string Description { get; private set; }
+    public DateTime DateTime { get; private set; }
+    public string Location { get; private set; }
+    public string  Category { get; }
+    public int MaxParticipants { get; private set; }
     public int RegisteredParticipants => _participants.Count;
 
     private readonly List<string> _imageUrls;
     public IReadOnlyList<string> ImageUrls => _imageUrls.AsReadOnly();
 
-    private readonly List<Participant> _participants;
+    private readonly List<Participant> _participants = new();
     public IReadOnlyList<Participant> Participants => _participants.AsReadOnly();
 
     private Event(
@@ -22,20 +22,18 @@ public class Event
         string description,
         DateTime dateTime,
         string location,
-        Guid categoryId,
+        string category,
         int maxParticipants,
-        List<string> imageUrls,
-        List<Participant> participants)
+        List<string> imageUrls)
     {
         Id = id;
         Name = name;
         Description = description;
         DateTime = dateTime;
         Location = location;
-        CategoryId = categoryId;
+        Category = category;
         MaxParticipants = maxParticipants;
         _imageUrls = imageUrls ?? new List<string>();
-        _participants = new List<Participant>(participants); 
     }
 
     public static Event Create(
@@ -44,10 +42,9 @@ public class Event
         string description,
         DateTime dateTime,
         string location,
-        Guid categoryId,
+        string category,
         int maxParticipants,
-        List<string> imageUrls = null,
-        List<Participant> initialParticipants = null)
+        List<string> imageUrls = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Event name cannot be empty", nameof(name));
@@ -58,32 +55,16 @@ public class Event
         if (dateTime < DateTime.UtcNow)
             throw new ArgumentException("Event date cannot be in the past", nameof(dateTime));
 
-        var participants = initialParticipants ?? new List<Participant>();
-        var images = imageUrls ?? new List<string>();
-
-        if (participants.Count > maxParticipants)
-            throw new ArgumentException(
-                $"Initial participants count {participants.Count} exceeds max capacity {maxParticipants}",
-                nameof(initialParticipants));
-
-        // Проверка уникальности участников
-        var duplicateParticipants = participants
-            .GroupBy(p => p.UserId)
-            .Any(g => g.Count() > 1);
-
-        if (duplicateParticipants)
-            throw new ArgumentException("Duplicate participants detected", nameof(initialParticipants));
-
         return new Event(
-            id,
-            name.Trim(),
-            description?.Trim(),
-            dateTime,
-            location.Trim(),
-            categoryId,
-            maxParticipants,
-            images,
-            participants);
+           id,
+           name.Trim(),
+           description?.Trim(),
+           dateTime,
+           location.Trim(),
+           category,
+           maxParticipants,
+           imageUrls);
+
     }
 
     public void AddParticipant(Participant participant)

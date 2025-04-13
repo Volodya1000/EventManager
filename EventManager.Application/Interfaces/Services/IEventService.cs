@@ -1,12 +1,13 @@
 ﻿using EventManager.Application.Dtos;
 using EventManager.Application.Requests;
+using EventManager.Domain.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace EventManager.Application.Interfaces.Services;
 
 public interface IEventService
 {
-    Task<List<EventDto>> GetAllAsync(int page, int pageSize);
+    Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize);
     Task<List<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize);
     Task<EventDto?> GetByIdAsync(int id);
     Task<int> CreateAsync(CreateEventRequest request);

@@ -1,15 +1,24 @@
 ﻿using EventManager.Application.Dtos;
+using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
+using EventManager.Domain.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace EventManager.Application.Services;
 
 public class EventService : IEventService
 {
-    public Task CancelAsync(int eventId, int userId)
+    private readonly IEventRepository _eventRepository;
+
+    public EventService(IEventRepository eventRepository)
     {
-        throw new NotImplementedException();
+        _eventRepository = eventRepository;
+    }
+
+    public async Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize)
+    {
+        return await _eventRepository.GetAllAsync(page, pageSize);
     }
 
     public Task<int> CreateAsync(CreateEventRequest request)
@@ -17,15 +26,18 @@ public class EventService : IEventService
         throw new NotImplementedException();
     }
 
-    public Task DeleteAsync(int id)
+
+    public Task CancelAsync(int eventId, int userId)
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<EventDto>> GetAllAsync(int page, int pageSize)
+    
+
+    public Task DeleteAsync(int id)
     {
         throw new NotImplementedException();
-    }
+    }  
 
     public Task<EventDto?> GetByIdAsync(int id)
     {

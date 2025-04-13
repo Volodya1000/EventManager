@@ -10,4 +10,4 @@ public record EventDto(
        int MaxParticipants,
        int RegisteredParticipants,
        List<string> ImageUrls,
-       List<Guid> ParticipantsIds);
+       List<Guid> ParticipantsIds); //Id пользователей (соответствуют классу user)

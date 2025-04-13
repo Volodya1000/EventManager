@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using EventManager.Application.Interfaces.Repositories;
+﻿using EventManager.Application.Interfaces.Repositories;
 using EventManager.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
