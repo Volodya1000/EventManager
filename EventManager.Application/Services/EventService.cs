@@ -152,7 +152,19 @@ public class EventService : IEventService
 
     public async Task CancelAsync(Guid eventId, Guid userId)
     {
-        throw new NotImplementedException();
+        var eventById = await _eventRepository.GetByIdAsync(eventId);
+
+        if (eventById == null)
+            throw new InvalidOperationException($"Event with id: {eventId} not found");
+
+        var user = await _userRepository.GetUserById(userId);
+
+        if (user == null)
+            throw new InvalidOperationException($"User with id: {userId} not found");
+
+        eventById.RemoveParticipant(userId);
+
+        await _eventRepository.UpdateAsync(eventById);
     }
 
 
