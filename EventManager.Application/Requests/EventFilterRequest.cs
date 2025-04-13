@@ -6,6 +6,6 @@ public class EventFilterRequest
     public DateTime? DateFrom { get; set; }
     public DateTime? DateTo { get; set; }
     public string? Location { get; set; }
-    public List<string>? Categorys { get; set; }
+    public List<string>? Categories { get; set; }
     public int? MaxParticipants { get; set; }
 }

@@ -92,81 +92,70 @@ public class EventRepository : IEventRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<bool> UpdateAsync(Event updatedEvent)
+    public async Task UpdateAsync(Event updatedEvent)
     {
-        try
-        {
-            var entity = await _context.Events
-            .Include(e => e.Participants)
+        var entity = await _context.Events.AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == updatedEvent.Id);
+        if (entity == null)
+            throw new InvalidOperationException("Event not found");
 
-            if (entity == null)
-                throw new InvalidOperationException("Event not found");
-
-            if (!await _context.Categories.AnyAsync(c => c.Name == updatedEvent.Category))
+        if (!await _context.Categories.AnyAsync(c => c.Name == updatedEvent.Category))
                 throw new InvalidOperationException("Category not found");
 
-            entity.Description = updatedEvent.Description;
-            entity.DateTime = updatedEvent.DateTime;
-            entity.Location = updatedEvent.Location;
+        entity.Description = updatedEvent.Description;
+        entity.DateTime = updatedEvent.DateTime;
+        entity.Location = updatedEvent.Location;
 
-            // Обновление категории по имени
-            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name == updatedEvent.Category);
-            if (category != null)
-                entity.CategoryId = category.Id;
+        // Обновление категории по имени
+        var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name == updatedEvent.Category);
+        if (category != null)
+            entity.CategoryId = category.Id;
 
-            entity.MaxParticipants = updatedEvent.MaxParticipants;
+        entity.MaxParticipants = updatedEvent.MaxParticipants;
 
-            // Обновление участников
-            var existingParticipantIds = entity.Participants.Select(p => p.UserId).ToList();
-            var newParticipantIds = updatedEvent.Participants.Select(p => p.UserId) ?? new List<Guid>();
+        // Обновление участников
+        var existingParticipantIds = entity.Participants.Select(p => p.UserId).ToList();
+        var newParticipantIds = updatedEvent.Participants.Select(p => p.UserId) ?? new List<Guid>();
 
-            // Удаление лишних участников
-            foreach (var participantId in existingParticipantIds.Except(newParticipantIds))
-            {
-                var participantToRemove = entity.Participants.FirstOrDefault(p => p.UserId == participantId);
-                if (participantToRemove != null)
-                    entity.Participants.Remove(participantToRemove);
-            }
-
-            // Добавление новых участников
-            foreach (var participantId in newParticipantIds.Except(existingParticipantIds))
-            {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == participantId);
-                if (user != null)
-                {
-                    var newParticipant = new ParticipantEntity
-                    {
-                        UserId = participantId,
-                        EventId = entity.Id,
-                        RegistrationDate = DateTime.UtcNow,
-                        User = user
-                    };
-                    entity.Participants.Add(newParticipant);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception)
+        // Удаление лишних участников
+        foreach (var participantId in existingParticipantIds.Except(newParticipantIds))
         {
-            return false;
+            var participantToRemove = entity.Participants.FirstOrDefault(p => p.UserId == participantId);
+            if (participantToRemove != null)
+                entity.Participants.Remove(participantToRemove);
         }
 
-        return true;
+        // Добавление новых участников
+        foreach (var participantId in newParticipantIds.Except(existingParticipantIds))
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == participantId);
+            if (user != null)
+            {
+                var newParticipant = new ParticipantEntity
+                {
+                    UserId = participantId,
+                    EventId = entity.Id,
+                    RegistrationDate = DateTime.UtcNow,
+                    User = user
+                };
+                entity.Participants.Add(newParticipant);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        
     }
 
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
         var entity = await _context.Events.FindAsync(id);
-        if (entity != null)
-        {
-            _context.Events.Remove(entity);
-            var result = await _context.SaveChangesAsync();
-            return result > 0; // Возвращает true, если хотя бы одна запись была удалена
-        }
-        return false;
+
+        if (entity == null)
+            throw new InvalidOperationException("Event not found");
+
+        _context.Events.Remove(entity);
+        var result = await _context.SaveChangesAsync();
     }
 
 
@@ -188,8 +177,8 @@ public class EventRepository : IEventRepository
         if (!string.IsNullOrEmpty(filter.Location))
             query = query.Where(e => e.Location.Contains(filter.Location));
 
-        if (filter.Categorys != null && filter.Categorys.Any())
-            query = query.Where(e => filter.Categorys.Contains(e.Category.Name));
+        if (filter.Categories != null && filter.Categories.Any())
+            query = query.Where(e => filter.Categories.Contains(e.Category.Name));
 
         if (filter.MaxParticipants.HasValue)
             query = query.Where(e => e.MaxParticipants <= filter.MaxParticipants.Value);

@@ -39,6 +39,10 @@ public class EventService : IEventService
 
     public async Task<Guid> CreateAsync(CreateEventRequest request)
     {
+        var exists = await _eventRepository.GetByNameAsync(request.Name);
+        if (exists != null)
+            throw new InvalidOperationException("Event with this name already exists");
+
         var newEvent = Event.Create(
             Guid.NewGuid(),
             request.Name,

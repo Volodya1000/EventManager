@@ -14,13 +14,13 @@ public interface IEventRepository
 
     public  Task AddAsync(Event newEvent);
 
-    public Task<bool> UpdateAsync(Event updatedEvent);
+    public Task UpdateAsync(Event updatedEvent);
 
     public  Task<Event?> GetByIdAsync(Guid id);
 
     public Task<Event?> GetByNameAsync(string name);
 
-    public Task<bool> DeleteAsync(Guid id);
+    public Task DeleteAsync(Guid id);
 
     public Task AddImageToEventAsync(Guid eventId, string imageUrl);
 
