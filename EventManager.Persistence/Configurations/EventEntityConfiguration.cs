@@ -1,6 +1,7 @@
 ﻿using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Reflection.Emit;
 
 namespace EventManager.Persistence.Configurations;
 
@@ -28,5 +29,9 @@ public class EventEntityConfiguration : IEntityTypeConfiguration<EventEntity>
         builder.HasMany(e => e.Images)
         .WithOne()
         .HasForeignKey("EventId");
+
+        builder.HasOne(e => e.Category)
+           .WithMany()
+           .HasForeignKey(e => e.CategoryId);
     }
 }

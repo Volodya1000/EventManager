@@ -24,6 +24,7 @@ public class EventRepository : IEventRepository
     {
         var query = _context.Events
             .AsNoTracking()
+            .Include(e => e.Category)
             .ProjectTo<EventDto>(_mapper.ConfigurationProvider); //проекция для оптимального sql запроса
 
         var totalRecords = await query.CountAsync();
@@ -35,6 +36,36 @@ public class EventRepository : IEventRepository
 
         return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
     }
+
+
+    //public async Task<PagedResponse<EventDto>> GetAllAsync(int pageNumber, int pageSize)
+    //{
+    //    var query = _context.Events
+    //        .AsNoTracking()
+    //        .Select(e => new EventDto(
+    //            e.Id,
+    //            e.Name,
+    //            e.Description,
+    //            e.DateTime,
+    //            e.Location,
+    //            e.Category.Name,
+    //            e.MaxParticipants,
+    //            e.Participants.Count,
+    //            e.Images.Select(i => i.Url).ToList(),
+    //            e.Participants.Select(p => p.UserId).ToList()
+    //        ));
+
+    //    var totalRecords = await query.CountAsync();
+    //    var data = await query
+    //        .OrderBy(e => e.DateTime)
+    //        .Skip((pageNumber - 1) * pageSize)
+    //        .Take(pageSize)
+    //        .ToListAsync();
+
+    //    return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
+    //}
+
+
 
     public async Task<Event?> GetByIdAsync(Guid id)
     {

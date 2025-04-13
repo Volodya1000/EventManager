@@ -75,15 +75,6 @@ app.UseAuthorization();
 
 app.AddMappedEndpoints();
 
-app.MapGet("/api/test-events", () => Results.Ok(new List<string> { "NewYear","First september" }))
-    .RequireAuthorization();
-
-app.MapGet("/api/only-admin", () => Results.Ok(new { Message = "Admin information" }))
-    .RequireAuthorization(policy => policy.RequireRole(new List<string>
-    {
-        IdentityRoleConstants.Admin
-    }));
-
 app.Run();
 
 
