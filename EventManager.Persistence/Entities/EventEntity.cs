@@ -1,6 +1,6 @@
 ﻿namespace EventManager.Persistence.Entities;
 
-public class EventEntity
+internal class EventEntity
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }

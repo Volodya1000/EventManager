@@ -2,7 +2,7 @@
 
 namespace EventManager.Persistence.Entities;
 
-public class ParticipantEntity
+internal class ParticipantEntity
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

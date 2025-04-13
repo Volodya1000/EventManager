@@ -1,6 +1,6 @@
 ﻿namespace EventManager.Application.Dtos;
 
-public record ParticipantDto
+public class ParticipantDto
 {
     public Guid UserId { get; init; }
     public Guid EventId { get; init; }
@@ -8,4 +8,6 @@ public record ParticipantDto
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public DateTime DateOfBirth { get; set; }
+
+    public ParticipantDto(){}
 }
