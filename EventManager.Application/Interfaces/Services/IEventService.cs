@@ -16,7 +16,7 @@ public interface IEventService
     Task<string> UploadImageAsync(Guid id, IFormFile image);
     Task DeleteImageAsync(Guid id, string url);
     Task<Guid> RegisterAsync(RegisterParticipantRequest request);
-    Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId);
+    Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId,int pageNumber, int pageSize);
     Task CancelAsync(Guid eventId, Guid userId);
 }
 

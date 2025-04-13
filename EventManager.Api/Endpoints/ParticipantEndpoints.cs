@@ -38,9 +38,11 @@ public static class ParticipantEndpoints
 
     private static async Task<IResult> GetEventParticipants(
         Guid eventId,
-        IEventService service)
+        [FromBody] IEventService service,
+        int pageNumber = 1,
+        int pageSize = 10)
     {
-        var result = await service.GetParticipantsAsync(eventId);
+        var result = await service.GetParticipantsAsync(eventId, pageNumber, pageSize);
         return Results.Ok(result);
     }
 

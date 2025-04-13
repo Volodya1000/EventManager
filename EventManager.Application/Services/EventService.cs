@@ -118,9 +118,9 @@ public class EventService : IEventService
         return await _eventRepository.GetFilteredAsync(filterRequest, page, pageSize);
     }
 
-    public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId)
+    public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId,int pageNumber,int pageSize)
     {
-        throw new NotImplementedException();
+        return await _eventRepository.GetParticipantsAsync(eventId, pageNumber, pageSize);
     }
 
     public async Task<Guid> RegisterAsync(RegisterParticipantRequest request)
