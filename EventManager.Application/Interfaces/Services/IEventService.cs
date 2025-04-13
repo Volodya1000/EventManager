@@ -8,14 +8,15 @@ namespace EventManager.Application.Interfaces.Services;
 public interface IEventService
 {
     Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize);
-    Task<List<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize);
-    Task<EventDto?> GetByIdAsync(int id);
+    Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize);
+    Task<EventDto?> GetByIdAsync(Guid id);
     Task<Guid> CreateAsync(CreateEventRequest request);
-    Task UpdateAsync(int id, UpdateEventRequest request);
-    Task DeleteAsync(int id);
-    Task<string> UploadImageAsync(int id, IFormFile image);
-    Task<int> RegisterAsync(int eventId, RegisterParticipantRequest request);
-    Task<List<ParticipantDto>> GetParticipantsAsync(int eventId);
-    Task CancelAsync(int eventId, int userId);
+    Task UpdateAsync(Guid id, UpdateEventRequest request);
+    Task DeleteAsync(Guid id);
+    Task<string> UploadImageAsync(Guid id, IFormFile image);
+    Task DeleteImageAsync(Guid id, string url);
+    Task<Guid> RegisterAsync(Guid eventId, RegisterParticipantRequest request);
+    Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId);
+    Task CancelAsync(Guid eventId, Guid userId);
 }
 

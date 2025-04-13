@@ -28,7 +28,7 @@ public static class ParticipantEndpoints
     }
 
     private static async Task<IResult> RegisterParticipant(
-        int eventId,
+        Guid eventId,
         [FromBody] RegisterParticipantRequest request,
         IEventService service)
     {
@@ -37,7 +37,7 @@ public static class ParticipantEndpoints
     }
 
     private static async Task<IResult> GetEventParticipants(
-        int eventId,
+        Guid eventId,
         IEventService service)
     {
         var result = await service.GetParticipantsAsync(eventId);
@@ -45,8 +45,8 @@ public static class ParticipantEndpoints
     }
 
     private static async Task<IResult> CancelParticipation(
-        int eventId,
-        int participantId,
+        Guid eventId,
+        Guid participantId,
         IEventService service)
     {
         await service.CancelAsync(eventId, participantId);

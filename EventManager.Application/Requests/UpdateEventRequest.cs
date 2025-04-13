@@ -4,6 +4,5 @@ public record UpdateEventRequest(
 string Description,
 DateTime DateTime,
 string Location,
-int MaxParticipants,
-List<string> ImageUrls);
+int MaxParticipants);
 

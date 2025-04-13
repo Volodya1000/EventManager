@@ -18,6 +18,8 @@ public class EventEntityConfiguration : IEntityTypeConfiguration<EventEntity>
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.HasIndex(e => e.Name).IsUnique(); //имя уникально в рамках всех событий
+
         builder.Property(e => e.Location)
             .IsRequired()
             .HasMaxLength(300);

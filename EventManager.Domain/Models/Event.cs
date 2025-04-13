@@ -83,5 +83,85 @@ public class Event
         var participant = _participants.FirstOrDefault(p => p.UserId == userId);
         return participant != null && _participants.Remove(participant);
     }
+
+
+    public void UpdateDescription(string newDescription)
+    {
+        if (string.IsNullOrWhiteSpace(newDescription))
+            throw new ArgumentException("Description cannot be empty or whitespace.", nameof(newDescription));
+
+        Description = newDescription.Trim();
+    }
+
+    public void UpdateDateTime(DateTime newDateTime)
+    {
+        if (newDateTime < DateTime.UtcNow)
+            throw new ArgumentException("Event date cannot be in the past.", nameof(newDateTime));
+
+        DateTime = newDateTime;
+    }
+
+    public void UpdateLocation(string newLocation)
+    {
+        if (string.IsNullOrWhiteSpace(newLocation))
+            throw new ArgumentException("Location cannot be empty or whitespace.", nameof(newLocation));
+
+        Location = newLocation.Trim();
+    }
+
+    public void UpdateMaxParticipants(int newMax)
+    {
+        if (newMax <= 0)
+            throw new ArgumentException("Max participants must be positive.", nameof(newMax));
+
+        if (newMax < RegisteredParticipants)
+            throw new ArgumentException("New max participants cannot be less than registered participants.", nameof(newMax));
+
+        MaxParticipants = newMax;
+    }
+
+    public void AddImageUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            throw new ArgumentException("Image URL cannot be empty or whitespace.", nameof(url));
+
+        var trimmedUrl = url.Trim();
+        if (!Uri.IsWellFormedUriString(trimmedUrl, UriKind.Absolute))
+            throw new ArgumentException("Invalid URL format.", nameof(url));
+
+        _imageUrls.Add(trimmedUrl);
+    }
+
+    public void RemoveImageUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            throw new ArgumentException("URL cannot be empty or whitespace.", nameof(url));
+
+        var trimmedUrl = url.Trim();
+        if (!_imageUrls.Remove(trimmedUrl))
+            throw new InvalidOperationException("The specified URL was not found.");
+    }
+
+    public void UpdateImageUrls(List<string> newUrls)
+    {
+        if (newUrls == null)
+            throw new ArgumentNullException(nameof(newUrls));
+
+        var trimmedUrls = new List<string>();
+        foreach (var url in newUrls)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException("Image URL cannot be empty or whitespace.", nameof(newUrls));
+
+            var trimmedUrl = url.Trim();
+            if (!Uri.IsWellFormedUriString(trimmedUrl, UriKind.Absolute))
+                throw new ArgumentException($"Invalid URL format: {url}", nameof(newUrls));
+
+            trimmedUrls.Add(trimmedUrl);
+        }
+
+        _imageUrls.Clear();
+        _imageUrls.AddRange(trimmedUrls);
+    }
 }
 

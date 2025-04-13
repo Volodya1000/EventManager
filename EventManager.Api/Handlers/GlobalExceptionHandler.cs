@@ -36,6 +36,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             UserNotFoundException => (HttpStatusCode.NotFound, exception.Message),
             UserAlreadyAdminException => (HttpStatusCode.Conflict, exception.Message),
             PromotionFailedException => (HttpStatusCode.BadRequest, exception.Message),
+            FileStorageException => (HttpStatusCode.InternalServerError, exception.Message),
             _ => (HttpStatusCode.InternalServerError, $"An unexpected error occurred: {exception.Message}")
         };
     }

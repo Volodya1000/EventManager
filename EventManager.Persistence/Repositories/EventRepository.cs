@@ -37,36 +37,6 @@ public class EventRepository : IEventRepository
         return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
     }
 
-
-    //public async Task<PagedResponse<EventDto>> GetAllAsync(int pageNumber, int pageSize)
-    //{
-    //    var query = _context.Events
-    //        .AsNoTracking()
-    //        .Select(e => new EventDto(
-    //            e.Id,
-    //            e.Name,
-    //            e.Description,
-    //            e.DateTime,
-    //            e.Location,
-    //            e.Category.Name,
-    //            e.MaxParticipants,
-    //            e.Participants.Count,
-    //            e.Images.Select(i => i.Url).ToList(),
-    //            e.Participants.Select(p => p.UserId).ToList()
-    //        ));
-
-    //    var totalRecords = await query.CountAsync();
-    //    var data = await query
-    //        .OrderBy(e => e.DateTime)
-    //        .Skip((pageNumber - 1) * pageSize)
-    //        .Take(pageSize)
-    //        .ToListAsync();
-
-    //    return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
-    //}
-
-
-
     public async Task<Event?> GetByIdAsync(Guid id)
     {
         var entity = await _context.Events
@@ -100,6 +70,10 @@ public class EventRepository : IEventRepository
         if (category == null)
             throw new InvalidOperationException("Category not found");
 
+        // Проверка уникальности имени события
+        if (await _context.Events.AnyAsync(e => e.Name == newEvent.Name))
+            throw new InvalidOperationException("Event with this name already exists");
+
         var entity = new EventEntity
         {
             Id = Guid.NewGuid(),
@@ -131,7 +105,6 @@ public class EventRepository : IEventRepository
             if (!await _context.Categories.AnyAsync(c => c.Name == updatedEvent.Category))
                 throw new InvalidOperationException("Category not found");
 
-            entity.Name = updatedEvent.Name ?? entity.Name;
             entity.Description = updatedEvent.Description;
             entity.DateTime = updatedEvent.DateTime;
             entity.Location = updatedEvent.Location;
@@ -183,17 +156,20 @@ public class EventRepository : IEventRepository
     }
 
 
-    public async Task DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
         var entity = await _context.Events.FindAsync(id);
         if (entity != null)
         {
             _context.Events.Remove(entity);
-            await _context.SaveChangesAsync();
+            var result = await _context.SaveChangesAsync();
+            return result > 0; // Возвращает true, если хотя бы одна запись была удалена
         }
+        return false;
     }
 
-    public async Task<PagedResponse<EventDto>> GetByFilterAsync(
+
+    public async Task<PagedResponse<EventDto>> GetFilteredAsync(
      EventFilterRequest filter,
      int pageNumber,
      int pageSize)
@@ -211,8 +187,8 @@ public class EventRepository : IEventRepository
         if (!string.IsNullOrEmpty(filter.Location))
             query = query.Where(e => e.Location.Contains(filter.Location));
 
-        if (filter.CategoryIds != null && filter.CategoryIds.Any())
-            query = query.Where(e => filter.CategoryIds.Contains(e.CategoryId));
+        if (filter.Categorys != null && filter.Categorys.Any())
+            query = query.Where(e => filter.Categorys.Contains(e.Category.Name));
 
         if (filter.MaxParticipants.HasValue)
             query = query.Where(e => e.MaxParticipants <= filter.MaxParticipants.Value);
@@ -243,7 +219,7 @@ public class EventRepository : IEventRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task RemoveImageFromEventAsync(Guid eventId, string imageUrl)
+    public async Task DeleteImageAsync(Guid eventId, string imageUrl)
     {
         var entity = await _context.Events
             .Include(e => e.Images)

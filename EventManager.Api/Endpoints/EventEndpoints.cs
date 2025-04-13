@@ -23,7 +23,7 @@ public static class EventEndpoints
             .Produces(StatusCodes.Status404NotFound);
 
         eventGroup.MapPost("/", CreateEvent)
-            //.RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
+            .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
             .Accepts<CreateEventRequest>("application/json")
             .Produces(StatusCodes.Status201Created);
 
@@ -45,9 +45,12 @@ public static class EventEndpoints
                 Description = "Filter by date, location, category"
             });
 
-        eventGroup.MapPost("/{id}/upload-image", UploadEventImage)
+        eventGroup.MapPost("/{id}/images", UploadEventImage)
             .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
-            .DisableAntiforgery()
+            .Produces<string>();
+
+        eventGroup.MapDelete("/{id}/images/{url}", DeleteEventImage)
+            .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
             .Produces<string>();
 
         return app;
@@ -63,7 +66,7 @@ public static class EventEndpoints
     }
 
     private static async Task<IResult> GetEventById(
-        int id,
+        Guid id,
         IEventService service)
     {
         var result = await service.GetByIdAsync(id);
@@ -79,7 +82,7 @@ public static class EventEndpoints
     }
 
     private static async Task<IResult> UpdateEvent(
-        int id,
+        Guid id,
         [FromBody] UpdateEventRequest request,
         IEventService service)
     {
@@ -88,7 +91,7 @@ public static class EventEndpoints
     }
 
     private static async Task<IResult> DeleteEvent(
-        int id,
+        Guid id,
         IEventService service)
     {
         await service.DeleteAsync(id);
@@ -106,11 +109,24 @@ public static class EventEndpoints
     }
 
     private static async Task<IResult> UploadEventImage(
-        int id,
+        Guid id,
         IFormFile image,
         IEventService service)
     {
         var imageUrl = await service.UploadImageAsync(id, image);
         return Results.Ok(imageUrl);
+    }
+
+    private static async Task<IResult> DeleteEventImage(
+       Guid id,
+       string url,
+       IFormFile image,
+       IEventService service)
+    {
+
+
+       await service.DeleteImageAsync(id, url);
+
+       return Results.NoContent();
     }
 }

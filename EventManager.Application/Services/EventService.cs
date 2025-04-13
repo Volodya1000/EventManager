@@ -1,9 +1,12 @@
-﻿using EventManager.Application.Dtos;
+﻿using AutoMapper;
+using EventManager.Application.Dtos;
+using EventManager.Application.FileStorage;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace EventManager.Application.Services;
 
@@ -11,9 +14,17 @@ public class EventService : IEventService
 {
     private readonly IEventRepository _eventRepository;
 
-    public EventService(IEventRepository eventRepository)
+    private readonly IMapper _mapper;
+
+    private readonly IFileStorage _fileStorage;
+
+    public EventService(IEventRepository eventRepository,
+                        IMapper mapper,
+                        IFileStorage fileStorage)
     {
         _eventRepository = eventRepository;
+        _mapper = mapper;
+        _fileStorage = fileStorage;
     }
 
     public async Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize)
@@ -39,45 +50,76 @@ public class EventService : IEventService
     }
 
 
-    public Task CancelAsync(int eventId, int userId)
+    public async Task CancelAsync(Guid eventId, Guid userId)
     {
         throw new NotImplementedException();
     }
 
     
 
-    public Task DeleteAsync(int id)
+    public async Task DeleteAsync(Guid id)
     {
-        throw new NotImplementedException();
+        await _eventRepository.DeleteAsync(id);
     }  
 
-    public Task<EventDto?> GetByIdAsync(int id)
+    public async Task<EventDto?> GetByIdAsync(Guid id)
+    {
+        var eventById = await _eventRepository.GetByIdAsync(id);
+
+        return _mapper.Map<EventDto>(eventById);
+    }
+
+    public async Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize)
+    {
+        return await _eventRepository.GetFilteredAsync(filterRequest, page, pageSize);
+    }
+
+    public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId)
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize)
+    public async Task<Guid> RegisterAsync(Guid eventId, RegisterParticipantRequest request)
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<ParticipantDto>> GetParticipantsAsync(int eventId)
+    public async Task UpdateAsync(Guid eventId, UpdateEventRequest request)
     {
-        throw new NotImplementedException();
+        Event eventById = await _eventRepository.GetByIdAsync(eventId);
+
+        eventById.UpdateDescription(request.Description);
+
+        eventById.UpdateLocation(request.Location);
+
+        eventById.UpdateMaxParticipants(request.MaxParticipants);
+
+
+        await _eventRepository.UpdateAsync(eventById);
     }
 
-    public Task<int> RegisterAsync(int eventId, RegisterParticipantRequest request)
+
+    public  async Task<string> UploadImageAsync(Guid eventId, IFormFile image)
     {
-        throw new NotImplementedException();
+        string imageUrl = await _fileStorage.SaveFile(image);
+
+        await _eventRepository.AddImageToEventAsync(eventId, imageUrl);
+
+        return imageUrl;
     }
 
-    public Task UpdateAsync(int id, UpdateEventRequest request)
+    public async Task DeleteImageAsync(Guid eventId, string url)
     {
-        throw new NotImplementedException();
+        var eventById = await _eventRepository.GetByIdAsync(eventId);
+
+        if (eventById == null) throw new InvalidOperationException($"Event with id: {eventId} not found");
+
+
+        await _fileStorage.DeleteFile(url);
+
+        await _eventRepository.DeleteImageAsync(eventId, url);
     }
 
-    public Task<string> UploadImageAsync(int id, IFormFile image)
-    {
-        throw new NotImplementedException();
-    }
+
+
 }

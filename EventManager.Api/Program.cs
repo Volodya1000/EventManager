@@ -1,5 +1,6 @@
 using EventManager.Api.Extensions;
 using EventManager.API.Handlers;
+using EventManager.Application.FileStorage;
 using EventManager.Application.Interfaces.AuthTokenProcessor;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
@@ -12,6 +13,7 @@ using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +45,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 
 builder.Services.AddApiAuthentication(builder.Configuration);
 
@@ -54,6 +57,12 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddHttpContextAccessor(); 
 
 var app = builder.Build();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider("/data/uploads"),
+    RequestPath = "/uploads"
+});
 
 if (app.Environment.IsDevelopment())
 {
