@@ -17,19 +17,17 @@ public static class CategoriesEndpoints
 
         categoriesGroup.MapPost("/", CreateCategory)
             .Produces(StatusCodes.Status201Created)
-           .WithOpenApi(operation => new OpenApiOperation(operation)
-           {
-               Summary = "Create new category for events",
-               Description = "Only admin endpoint"
-           });
+            .WithOpenApi(operation => new OpenApiOperation(operation)
+            {
+               Summary = "Creates a category whose name must be unique. Requires admin permissions",
+            });
 
         categoriesGroup.MapDelete("/{id}", DeleteCategory)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .WithOpenApi(operation => new OpenApiOperation(operation)
             {
-                Summary = "Only a category that is not related to events can be deleted.",
-                Description = "Renaming an existing category"
+                Summary = "Deleting an existing category.Only if there are no events associated with it. Requires admin permissions",
             });
 
         categoriesGroup.MapPut("/{id}/rename", RenameCategory)
@@ -38,8 +36,7 @@ public static class CategoriesEndpoints
             .Produces(StatusCodes.Status400BadRequest)
             .WithOpenApi(operation => new OpenApiOperation(operation)
             {
-                Summary = "Renaming an existing category",
-                Description = "Renaming an existing category"
+                Summary = "Update name of an existing category. Requires admin permissions",
             });
 
         return app;

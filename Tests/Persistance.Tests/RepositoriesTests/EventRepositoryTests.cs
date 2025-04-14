@@ -71,6 +71,11 @@ public class EventRepositoryTests : IDisposable
 
         createdEvent.Should().NotBeNull();
         createdEvent.Name.Should().Be(newEvent.Name);
+        createdEvent.Description.Should().Be(newEvent.Description);
+        createdEvent.DateTime.Should().Be(newEvent.DateTime);
+        createdEvent.Location.Should().Be(newEvent.Location);
+        createdEvent.Category.Should().Be(newEvent.Category);
+        createdEvent.MaxParticipants.Should().Be(newEvent.MaxParticipants);
         createdEvent.ImageUrls.Should().BeEquivalentTo(newEvent.ImageUrls);
     }
 

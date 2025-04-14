@@ -42,7 +42,6 @@ public static class EventEndpoints
             .WithOpenApi(operation => new OpenApiOperation(operation)
             {
                 Summary = "Filter events by criteria",
-                Description = "Filter by date, location, category"
             });
 
         return app;

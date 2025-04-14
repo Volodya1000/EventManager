@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using EventManager.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
+using FluentValidation;
 
 namespace EventManager.API.Handlers;
 
@@ -29,6 +30,8 @@ public class GlobalExceptionHandler : IExceptionHandler
     {
         return exception switch
         {
+            ValidationException validationException =>
+                (HttpStatusCode.BadRequest, GetValidationErrorMessage(validationException)),
             LoginFailedException => (HttpStatusCode.Unauthorized, exception.Message),
             UserAlreadyExistsException => (HttpStatusCode.Conflict, exception.Message),
             RegistrationFailedException => (HttpStatusCode.BadRequest, exception.Message),
@@ -39,5 +42,11 @@ public class GlobalExceptionHandler : IExceptionHandler
             FileStorageException => (HttpStatusCode.InternalServerError, exception.Message),
             _ => (HttpStatusCode.InternalServerError, $"An unexpected error occurred: {exception.Message}")
         };
+    }
+
+    private string GetValidationErrorMessage(ValidationException validationException)
+    {
+        var errors = validationException.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}");
+        return string.Join("\n", errors);
     }
 }

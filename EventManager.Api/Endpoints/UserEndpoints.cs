@@ -20,13 +20,10 @@ public static class UserEndpoints
         app.MapPut("/api/admin/promote/{email}", PromoteToAdmin)
             .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
             .WithTags("Admin")
-            .WithOpenApi(operation =>
+            .WithOpenApi(operation => new OpenApiOperation(operation)
             {
-                operation.Summary = "Promote user to admin role";
-                operation.Description = "Requires admin privileges";
-                return operation;
+                Summary = "Promote user to admin role. Requires admin permissions",
             })
-            .RequireRateLimiting("admin-promotion-policy")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
