@@ -94,41 +94,6 @@ public class EventService : IEventService
     }
     #endregion
 
-
-
-
-    #region OperationsWithImages
-
-
-    public async Task<string> UploadImageAsync(Guid eventId, IFormFile image)
-    {
-        string imageUrl = await _fileStorage.SaveFile(image);
-
-        await _eventRepository.AddImageToEventAsync(eventId, imageUrl);
-
-        return imageUrl;
-    }
-
-    public async Task DeleteImageAsync(Guid eventId, string url)
-    {
-        await _unitOfWork.BeginTransactionAsync();
-        try
-        {
-            await _eventRepository.DeleteImageAsyncWithoutCommit(eventId, url); // Метод Без SaveChanges
-            await _fileStorage.DeleteFile(url);
-            await _unitOfWork.CommitAsync(); // Сохранение + коммит транзакции
-        }
-        catch
-        {
-            await _unitOfWork.RollbackAsync();
-            throw;
-        }
-    }
-
-    #endregion
-
-
-
     #region OperationsWithParticipants
     public async Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize)
     {

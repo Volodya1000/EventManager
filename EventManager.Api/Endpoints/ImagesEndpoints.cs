@@ -1,4 +1,5 @@
 ﻿
+using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Services;
 using global::EventManager.Application.Interfaces.Services;
 using global::EventManager.Domain.Constants;
@@ -49,7 +50,7 @@ public static class ImagesEndpoints
     private static async Task<IResult> GetEventImage(
         Guid eventId,
         string filename,
-        [FromServices] IEventService eventService)
+        [FromServices] IImageService imageService)
     {
         try
         {
@@ -97,9 +98,9 @@ public static class ImagesEndpoints
     private static async Task<IResult> UploadEventImage(
         Guid eventId,
         IFormFile image,
-        [FromServices] IEventService eventService)
+        [FromServices] IImageService imageService)
     {
-        var imageUrl = await eventService.UploadImageAsync(eventId, image);
+        var imageUrl = await imageService.UploadImageAsync(eventId, image);
         return Results.Created($"/api/events/{eventId}/images/{Path.GetFileName(imageUrl)}", imageUrl);
     }
 
