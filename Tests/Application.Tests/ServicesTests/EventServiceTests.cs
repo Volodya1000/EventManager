@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Application.Tests.ServicesTests;
 
-namespace Application.Tests.ServicesTests
+public class EventServiceTests
 {
-    internal class EventServiceTests
-    {
-    }
 }

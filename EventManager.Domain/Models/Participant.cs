@@ -42,6 +42,7 @@ public class Participant
         if (dateOfBirth > DateTime.UtcNow.AddYears(-16))
             throw new ArgumentException("Participant must be at least 16 years old", nameof(dateOfBirth));
 
+       
         return new Participant(
             userId,
             eventId,
