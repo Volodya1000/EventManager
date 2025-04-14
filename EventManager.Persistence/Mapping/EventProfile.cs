@@ -26,6 +26,7 @@ public class EventProfile : Profile
                        src.Category.Name, 
                        src.MaxParticipants,
                        src.Images.Select(i => i.Url).ToList()))
+                   .ForMember(dest => dest.Participants, opt => opt.Ignore())// Игнорируем автоматический маппинг
                    .AfterMap((src, dest) =>
                    {
                        // Маппинг участников

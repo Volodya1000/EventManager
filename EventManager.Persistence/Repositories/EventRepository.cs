@@ -77,7 +77,7 @@ public class EventRepository : IEventRepository
 
         var entity = new EventEntity
         {
-            Id = Guid.NewGuid(),
+            Id = newEvent.Id,
             Name = newEvent.Name,
             Description = newEvent.Description,
             DateTime = newEvent.DateTime,
