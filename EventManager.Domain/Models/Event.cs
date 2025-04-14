@@ -131,37 +131,5 @@ public class Event
 
         _imageUrls.Add(trimmedUrl);
     }
-
-    public void RemoveImageUrl(string url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-            throw new ArgumentException("URL cannot be empty or whitespace.", nameof(url));
-
-        var trimmedUrl = url.Trim();
-        if (!_imageUrls.Remove(trimmedUrl))
-            throw new InvalidOperationException("The specified URL was not found.");
-    }
-
-    public void UpdateImageUrls(List<string> newUrls)
-    {
-        if (newUrls == null)
-            throw new ArgumentNullException(nameof(newUrls));
-
-        var trimmedUrls = new List<string>();
-        foreach (var url in newUrls)
-        {
-            if (string.IsNullOrWhiteSpace(url))
-                throw new ArgumentException("Image URL cannot be empty or whitespace.", nameof(newUrls));
-
-            var trimmedUrl = url.Trim();
-            if (!Uri.IsWellFormedUriString(trimmedUrl, UriKind.Absolute))
-                throw new ArgumentException($"Invalid URL format: {url}", nameof(newUrls));
-
-            trimmedUrls.Add(trimmedUrl);
-        }
-
-        _imageUrls.Clear();
-        _imageUrls.AddRange(trimmedUrls);
-    }
 }
 
