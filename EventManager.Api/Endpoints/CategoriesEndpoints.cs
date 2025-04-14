@@ -19,7 +19,7 @@ public static class CategoriesEndpoints
             .Produces(StatusCodes.Status201Created)
             .WithOpenApi(operation => new OpenApiOperation(operation)
             {
-               Summary = "Creates a category whose name must be unique. Requires admin permissions",
+               Summary = "Creates a category which name must be unique. Requires admin permissions",
             });
 
         categoriesGroup.MapDelete("/{id}", DeleteCategory)

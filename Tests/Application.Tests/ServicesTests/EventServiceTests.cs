@@ -11,6 +11,7 @@ using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Application.Tests.ServicesTests;
@@ -309,15 +310,8 @@ public class EventServiceTests : IDisposable
         var user = await CreateAndAddUserAsync();
         SetupUserMock(user.Id, user);
 
-        var registerRequest = new RegisterParticipantRequest
-        {
-            EventId = eventId,
-            UserId = user.Id,
-            RegistrationDate = DateTime.UtcNow
-        };
-
         // Act
-        var resultUserId = await _eventService.RegisterAsync(registerRequest);
+        var resultUserId = await _eventService.RegisterAsync(eventId, user.Id);
 
         // Assert
         resultUserId.Should().Be(user.Id);
@@ -333,15 +327,8 @@ public class EventServiceTests : IDisposable
         var user = await CreateAndAddUserAsync();
         SetupUserMock(user.Id, user);
 
-        var registerRequest = new RegisterParticipantRequest
-        {
-            EventId = Guid.NewGuid(),
-            UserId = user.Id,
-            RegistrationDate = DateTime.UtcNow
-        };
-
         // Act & Assert
-        await _eventService.Invoking(s => s.RegisterAsync(registerRequest))
+        await _eventService.Invoking(s => s.RegisterAsync(Guid.NewGuid(), user.Id))
             .Should().ThrowAsync<InvalidOperationException>();
     }
 
@@ -355,16 +342,9 @@ public class EventServiceTests : IDisposable
         var missingUserId = Guid.NewGuid();
         SetupUserMock(missingUserId, null);
 
-        var registerRequest = new RegisterParticipantRequest
-        {
-            EventId = eventId,
-            UserId = missingUserId,
-            RegistrationDate = DateTime.UtcNow
-        };
-
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _eventService.RegisterAsync(registerRequest));
+            () => _eventService.RegisterAsync(eventId, missingUserId));
     }
 
     [Fact(DisplayName = "GetParticipantsAsync: Корректно возвращает список участников")]
@@ -375,12 +355,7 @@ public class EventServiceTests : IDisposable
         var user = await CreateAndAddUserAsync();
         SetupUserMock(user.Id, user);  
 
-        await _eventService.RegisterAsync(new RegisterParticipantRequest
-        {
-            EventId = eventId,
-            UserId = user.Id,
-            RegistrationDate = DateTime.UtcNow
-        });
+        await _eventService.RegisterAsync(eventId, user.Id);
 
         // Act
         var result = await _eventService.GetParticipantsAsync(eventId, 1, 10);
@@ -398,12 +373,7 @@ public class EventServiceTests : IDisposable
         var user = await CreateAndAddUserAsync();
         SetupUserMock(user.Id, user);
 
-        await _eventService.RegisterAsync(new RegisterParticipantRequest
-        {
-            EventId = eventId,
-            UserId = user.Id,
-            RegistrationDate = DateTime.UtcNow
-        });
+        await _eventService.RegisterAsync(eventId,user.Id);
 
         // Act
         await _eventService.CancelAsync(eventId, user.Id);

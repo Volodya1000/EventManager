@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain.Tests", "Tests\Domai
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Tests", "Tests\Application.Tests\Application.Tests.csproj", "{B757C01D-7765-4F8E-B466-6428FA3938A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persistance.Tests", "Tests\Persistance.Tests\Persistance.Tests.csproj", "{B1D0826E-49D0-4EE9-93D0-5235657F9EDA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persistence.Tests", "Tests\Persistance.Tests\Persistence.Tests.csproj", "{B1D0826E-49D0-4EE9-93D0-5235657F9EDA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

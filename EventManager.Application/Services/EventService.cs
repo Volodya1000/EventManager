@@ -140,22 +140,22 @@ public class EventService : IEventService
         return await _eventRepository.GetParticipantsAsync(eventId, pageNumber, pageSize);
     }
 
-    public async Task<Guid> RegisterAsync(RegisterParticipantRequest request)
+    public async Task<Guid> RegisterAsync(Guid eventId, Guid userId)
     {
-        var eventById = await _eventRepository.GetByIdAsync(request.EventId);
+        var eventById = await _eventRepository.GetByIdAsync(eventId);
 
         if (eventById == null) 
-            throw new InvalidOperationException($"Event with id: {request.EventId} not found");
+            throw new InvalidOperationException($"Event with id: {eventId} not found");
 
-        var user = await _userRepository.GetUserById(request.UserId);
+        var user = await _userRepository.GetUserById(userId);
 
         if (user == null) 
-            throw new InvalidOperationException($"User with id: {request.UserId} not found");
+            throw new InvalidOperationException($"User with id: {userId} not found");
 
         var newParticipant = Participant.Create(
-            request.UserId,
-            request.EventId,
-            request.RegistrationDate,
+            userId,
+            eventId,
+            DateTime.Now,
             user.FirstName,
             user.LastName,
             user.DateOfBirth);
@@ -164,7 +164,7 @@ public class EventService : IEventService
 
         await _eventRepository.UpdateAsync(eventById);
 
-        return request.UserId;
+        return userId;
     }
 
     public async Task CancelAsync(Guid eventId, Guid userId)
