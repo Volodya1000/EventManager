@@ -8,7 +8,6 @@ using EventManager.Application.Services;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace Application.Tests.ServicesTests;
@@ -59,10 +58,10 @@ public class EventServiceTests : IDisposable
         });
         IMapper mapperForPersistance = mapperConfigForPersistance.CreateMapper();
 
-        // Arrange: Создание реального репозитория с in-memory контекстом
+        // Создание реального репозитория с in-memory контекстом
         _eventRepository = new EventRepository(_context, mapperForPersistance);
 
-        // Arrange: Создание моков для внешних сервисов
+        // Создание моков для внешних сервисов
         _fileStorageMock = new Mock<IFileStorage>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -72,7 +71,7 @@ public class EventServiceTests : IDisposable
         _unitOfWorkMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-        // Создание экземпляра тестируемого сервиса
+      
         _eventService = new EventService(
             _eventRepository,
             _mapper,
@@ -136,5 +135,133 @@ public class EventServiceTests : IDisposable
         Assert.NotNull(createdEvent);
         Assert.Equal(request.Name, createdEvent.Name);
     }
+
+
+    [Fact]
+    public async Task CreateAsync_WithDuplicateName_ThrowsException()
+    {
+        // Arrange
+        var request = new CreateEventRequest(
+            Name: "Duplicate Event",
+            Description: "Desc",
+            DateTime: DateTime.UtcNow.AddDays(3),
+            Location: "Location B",
+            Category: "Sports",
+            MaxParticipants: 15,
+            ImageUrls: new List<string>()
+        );
+        
+        await _eventService.CreateAsync(request);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _eventService.CreateAsync(request));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithExistingEvent_DeletesEvent()
+    {
+        // Arrange
+        var request = new CreateEventRequest(
+            Name: "Event To Delete",
+            Description: "Desc",
+            DateTime: DateTime.UtcNow.AddDays(5),
+            Location: "Delete Location",
+            Category: "Sports",
+            MaxParticipants: 10,
+            ImageUrls: new List<string>()
+        );
+        var eventId = await _eventService.CreateAsync(request);
+
+        // Act
+        await _eventService.DeleteAsync(eventId);
+
+        // Assert
+        var deletedEvent = await _eventRepository.GetByIdAsync(eventId);
+        Assert.Null(deletedEvent);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WithValidId_ReturnsEventDto()
+    {
+        // Arrange
+        var request = new CreateEventRequest(
+            Name: "Event GetById",
+            Description: "Desc",
+            DateTime: DateTime.UtcNow.AddDays(4),
+            Location: "Location",
+            Category: "Sports",
+            MaxParticipants: 12,
+            ImageUrls: new List<string>()
+        );
+        var eventId = await _eventService.CreateAsync(request);
+
+        // Act
+        var result = await _eventService.GetByIdAsync(eventId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(request.Name, result.Name);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithValidData_UpdatesEvent()
+    {
+        // Arrange
+        var request = new CreateEventRequest(
+            Name: "Event Update",
+            Description: "Old Description",
+            DateTime: DateTime.UtcNow.AddDays(4),
+            Location: "Old Location",
+            Category: "Sports",
+            MaxParticipants: 20,
+            ImageUrls: new List<string>()
+        );
+        var eventId = await _eventService.CreateAsync(request);
+
+        var updateRequest = new UpdateEventRequest(
+            Description: "New Description",
+            DateTime: DateTime.UtcNow.AddDays(4), 
+            Location: "New Location",
+            MaxParticipants: 25
+        );
+
+        // Act
+        await _eventService.UpdateAsync(eventId, updateRequest);
+
+        // Assert
+        var updatedEvent = await _eventRepository.GetByIdAsync(eventId);
+        Assert.Equal(updateRequest.Description, updatedEvent.Description);
+        Assert.Equal(updateRequest.Location, updatedEvent.Location);
+        Assert.Equal(updateRequest.MaxParticipants, updatedEvent.MaxParticipants);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithEmptyDescription_ThrowsException()
+    {
+        // Arrange
+        var request = new CreateEventRequest(
+            Name: "Event EmptyDesc",
+            Description: "Valid Desc",
+            DateTime: DateTime.UtcNow.AddDays(4),
+            Location: "Location",
+            Category: "Conference",
+            MaxParticipants: 15,
+            ImageUrls: new List<string>()
+        );
+        var eventId = await _eventService.CreateAsync(request);
+
+        var updateRequest = new UpdateEventRequest(
+            Description: "  ", //Некорректное описание
+            DateTime: DateTime.UtcNow.AddDays(4),
+            Location: "Location",
+            MaxParticipants: 15
+        );
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => _eventService.UpdateAsync(eventId, updateRequest));
+    }
+
 
 }
