@@ -191,7 +191,7 @@ public class EventServiceTests : IDisposable
     }
 
 
-    [Fact(DisplayName = "CreateAsync: происходит exception при повторяющемся имени события")]
+    [Fact(DisplayName = "CreateAsync: Ппроисходит exception при повторяющемся имени события")]
     public async Task CreateAsync_WithDuplicateName_ThrowsException()
     {
         // Arrange
@@ -203,7 +203,7 @@ public class EventServiceTests : IDisposable
             .Should().ThrowAsync<InvalidOperationException>();
     }
 
-    [Fact(DisplayName = "DeleteAsync: работает удаление существующего события")]
+    [Fact(DisplayName = "DeleteAsync: Работает удаление существующего события")]
     public async Task DeleteAsync_WithExistingEvent_DeletesEvent()
     {
         // Arrange
@@ -254,7 +254,7 @@ public class EventServiceTests : IDisposable
         updatedEvent.MaxParticipants.Should().Be(updateRequest.MaxParticipants);
     }
 
-    [Fact(DisplayName = "UpdateAsync: происходит exception при пустом описании в UpdateEventRequest")]
+    [Fact(DisplayName = "UpdateAsync: Происходит exception при пустом описании в UpdateEventRequest")]
     public async Task UpdateAsync_WithEmptyDescription_ThrowsException()
     {
         // Arrange
@@ -322,7 +322,7 @@ public class EventServiceTests : IDisposable
         updatedEvent.Participants.Should().Contain(p => p.UserId == user.Id);
     }
 
-    [Fact(DisplayName = "RegisterAsync: происходит exception при отсутствии события")]
+    [Fact(DisplayName = "RegisterAsync: Происходит exception при отсутствии события")]
     public async Task RegisterAsync_WhenEventNotFound_ThrowsException()
     {
         // Arrange
@@ -341,7 +341,7 @@ public class EventServiceTests : IDisposable
             .Should().ThrowAsync<InvalidOperationException>();
     }
 
-    [Fact(DisplayName = "RegisterAsync: происходит exception при добавлении в событие не существующего пользователя")]
+    [Fact(DisplayName = "RegisterAsync: Происходит exception при добавлении в событие не существующего пользователя")]
     public async Task RegisterAsync_WhenUserNotFound_ThrowsException()
     {
         // Arrange
@@ -422,7 +422,7 @@ public class EventServiceTests : IDisposable
             .Should().ThrowExactlyAsync<InvalidOperationException>();
     }
 
-    [Fact(DisplayName = "CancelAsync: происходит exception, если пользователь не найден")]
+    [Fact(DisplayName = "CancelAsync: Происходит exception, если пользователь не найден")]
     public async Task CancelAsync_WhenUserNotFound_ThrowsException()
     {
         // Arrange

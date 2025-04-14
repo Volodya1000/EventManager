@@ -1,4 +1,5 @@
 ﻿using EventManager.Domain.Models;
+using FluentAssertions;
 
 namespace Domain.Tests.ModelTests;
 
@@ -9,101 +10,175 @@ public class EventTests
 
     public EventTests()
     {
-        _testEvent = Event.Create(
-            Guid.NewGuid(),
-            "Test Event",
-            "Test Description",
-            DateTime.UtcNow.AddDays(1),
-            "Test Location",
-            "Test Category",
-            2);
-
-        _testParticipant = Participant.Create(
-            Guid.NewGuid(),
-            _testEvent.Id,
-            DateTime.UtcNow,
-            "John",
-            "Doe",
-            DateTime.UtcNow.AddYears(-20));
+        _testEvent = CreateTestEvent();
+        _testParticipant = CreateTestParticipant(_testEvent.Id);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("  ")]
-    [InlineData(null)]
-    public void CreateEvent_InvalidName_ThrowsException(string name)
+    #region Test Helpers
+
+    private static Event CreateTestEvent(
+        string name = "Test Event",
+        int maxParticipants = 2,
+        DateTime? dateTime = null)
     {
-        Assert.Throws<ArgumentException>(() => Event.Create(
+        return Event.Create(
             Guid.NewGuid(),
             name,
-            "Description",
-            DateTime.UtcNow.AddDays(1),
-            "Location",
-            "Category",
-            10));
+            "Test Description",
+            dateTime ?? DateTime.UtcNow.AddDays(1),
+            "Test Location",
+            "Test Category",
+            maxParticipants);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void CreateEvent_InvalidMaxParticipants_ThrowsException(int maxParticipants)
+    private static Participant CreateTestParticipant(
+        Guid eventId,
+        Guid? userId = null,
+        string firstName = "John",
+        string lastName = "Doe")
     {
-        Assert.Throws<ArgumentException>(() => Event.Create(
-            Guid.NewGuid(),
-            "Test Event",
-            "Description",
-            DateTime.UtcNow.AddDays(1),
-            "Location",
-            "Category",
-            maxParticipants));
+        return Participant.Create(
+            userId ?? Guid.NewGuid(),
+            eventId,
+            DateTime.UtcNow,
+            firstName,
+            lastName,
+            DateTime.UtcNow.AddYears(-20));
     }
 
-    [Fact]
-    public void UpdateDescription_ValidData_UpdatesCorrectly()
-    {
-        var newDescription = "New Description";
-        _testEvent.UpdateDescription(newDescription);
-        Assert.Equal(newDescription, _testEvent.Description);
-    }
+    #endregion
 
-    [Theory]
+    [Theory(DisplayName = "Create: Происходит exception при невалидном названии")]
     [InlineData("")]
     [InlineData("  ")]
     [InlineData(null)]
-    public void UpdateDescription_InvalidData_ThrowsException(string description)
+    public void Create_WithInvalidName_ThrowsArgumentException(string invalidName)
     {
-        Assert.Throws<ArgumentException>(() => _testEvent.UpdateDescription(description));
+        // Act & Assert
+        FluentActions.Invoking(() => CreateTestEvent(name: invalidName))
+            .Should().Throw<ArgumentException>();
     }
 
-    [Fact]
-    public void UpdateDateTime_ValidData_UpdatesCorrectly()
+    [Theory(DisplayName = "Create: Происходит exception при невалидном количестве участников")]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Create_WithInvalidMaxParticipants_ThrowsArgumentException(int invalidMax)
     {
+        // Act & Assert
+        FluentActions.Invoking(() => CreateTestEvent(maxParticipants: invalidMax))
+            .Should().Throw<ArgumentException>();
+    }
+
+    [Fact(DisplayName = "UpdateDescription: Обновляет описание при валидных данных")]
+    public void UpdateDescription_WithValidData_UpdatesProperty()
+    {
+        // Arrange
+        const string newDescription = "New Description";
+
+        // Act
+        _testEvent.UpdateDescription(newDescription);
+
+        // Assert
+        _testEvent.Description.Should().Be(newDescription);
+    }
+
+    [Theory(DisplayName = "UpdateDescription: Происходит exception при пустом описании")]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData(null)]
+    public void UpdateDescription_WithInvalidData_ThrowsArgumentException(string invalidDescription)
+    {
+        // Act & Assert
+        FluentActions.Invoking(() => _testEvent.UpdateDescription(invalidDescription))
+            .Should().Throw<ArgumentException>();
+    }
+
+    [Fact(DisplayName = "UpdateDateTime: Обновляет дату и время при валидных данных")]
+    public void UpdateDateTime_WithValidData_UpdatesProperty()
+    {
+        // Arrange
         var newDateTime = DateTime.UtcNow.AddDays(2);
+
+        // Act
         _testEvent.UpdateDateTime(newDateTime);
-        Assert.Equal(newDateTime, _testEvent.DateTime);
+
+        // Assert
+        _testEvent.DateTime.Should().Be(newDateTime);
     }
 
-    [Fact]
-    public void UpdateDateTime_PastDate_ThrowsException()
+    [Fact(DisplayName = "UpdateDateTime: Происходит exception при установке прошедшей даты")]
+    public void UpdateDateTime_WithPastDate_ThrowsArgumentException()
     {
+        // Arrange
         var pastDate = DateTime.UtcNow.AddDays(-1);
-        Assert.Throws<ArgumentException>(() => _testEvent.UpdateDateTime(pastDate));
+
+        // Act & Assert
+        FluentActions.Invoking(() => _testEvent.UpdateDateTime(pastDate))
+            .Should().Throw<ArgumentException>();
     }
 
-    [Fact]
-    public void AddParticipant_DuplicateUserId_ThrowsException()
+    [Fact(DisplayName = "UpdateLocation: Обновляет локацию при валидных данных")]
+    public void UpdateLocation_WithValidData_UpdatesProperty()
     {
-        var participant2 = Participant.Create(
-            _testParticipant.UserId,
+        // Arrange
+        const string newLocation = "New Location";
+
+        // Act
+        _testEvent.UpdateLocation(newLocation);
+
+        // Assert
+        _testEvent.Location.Should().Be(newLocation);
+    }
+
+    [Theory(DisplayName = "UpdateLocation: Происходит exception при невалидной локации")]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData(null)]
+    public void UpdateLocation_WithInvalidData_ThrowsArgumentException(string invalidLocation)
+    {
+        // Act & Assert
+        _testEvent.Invoking(e => e.UpdateLocation(invalidLocation))
+            .Should().Throw<ArgumentException>();
+    }
+
+    [Fact(DisplayName = "AddParticipant: Происходит exception при дублировании пользователя")]
+    public void AddParticipant_WithDuplicateUserId_ThrowsException()
+    {
+        // Arrange
+        var duplicateParticipant = CreateTestParticipant(
             _testEvent.Id,
-            DateTime.UtcNow,
+            _testParticipant.UserId,
             "Jane",
-            "Doe",
-            DateTime.UtcNow.AddYears(-20));
+            "Doe");
 
         _testEvent.AddParticipant(_testParticipant);
-        Assert.Throws<InvalidOperationException>(() => _testEvent.AddParticipant(participant2));
+
+        // Act & Assert
+        FluentActions.Invoking(() => _testEvent.AddParticipant(duplicateParticipant))
+            .Should().Throw<InvalidOperationException>();
     }
 
+    [Fact(DisplayName = "RemoveParticipant: Возвращает false при отсутствии участника")]
+    public void RemoveParticipant_WithNonExistingUser_ReturnsFalse()
+    {
+        // Act
+        var result = _testEvent.RemoveParticipant(Guid.NewGuid());
 
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "RemoveParticipant: Удаляет существующего участника")]
+    public void RemoveParticipant_WithExistingUser_ReturnsTrue()
+    {
+        // Arrange
+        _testEvent.AddParticipant(_testParticipant);
+
+        // Act
+        var result = _testEvent.RemoveParticipant(_testParticipant.UserId);
+
+        // Assert
+        result.Should().BeTrue();
+        _testEvent.RegisteredParticipants.Should().Be(0);
+    }
 }

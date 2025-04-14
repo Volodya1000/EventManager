@@ -118,18 +118,6 @@ public class Event
             throw new ArgumentException("New max participants cannot be less than registered participants.", nameof(newMax));
 
         MaxParticipants = newMax;
-    }
-
-    public void AddImageUrl(string url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-            throw new ArgumentException("Image URL cannot be empty or whitespace.", nameof(url));
-
-        var trimmedUrl = url.Trim();
-        if (!Uri.IsWellFormedUriString(trimmedUrl, UriKind.Absolute))
-            throw new ArgumentException("Invalid URL format.", nameof(url));
-
-        _imageUrls.Add(trimmedUrl);
-    }
+    }    
 }
 
