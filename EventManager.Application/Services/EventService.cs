@@ -6,35 +6,37 @@ using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Application.Services;
 
 public class EventService : IEventService
 {
     private readonly IEventRepository _eventRepository;
-
     private readonly IMapper _mapper;
-
     private readonly IFileStorage _fileStorage;
-
     private readonly IUserRepository _userRepository;
-
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IValidator<CreateEventRequest> _validator;
 
-
-    public EventService(IEventRepository eventRepository,
-                        IMapper mapper,
-                        IFileStorage fileStorage,
-                        IUserRepository userRepository,
-                        IUnitOfWork unitOfWork)
+    public EventService(
+        IEventRepository eventRepository,
+        IMapper mapper,
+        IFileStorage fileStorage,
+        IUserRepository userRepository,
+        IUnitOfWork unitOfWork,
+        IValidator<CreateEventRequest> validator)
     {
         _eventRepository = eventRepository;
         _mapper = mapper;
         _fileStorage = fileStorage;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
+        _validator = validator;
     }
+
 
     #region OperationsWithEvents
     public async Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize)
@@ -44,6 +46,8 @@ public class EventService : IEventService
 
     public async Task<Guid> CreateAsync(CreateEventRequest request)
     {
+        _validator.ValidateAndThrow(request);
+
         var exists = await _eventRepository.GetByNameAsync(request.Name);
         if (exists != null)
             throw new InvalidOperationException("Event with this name already exists");

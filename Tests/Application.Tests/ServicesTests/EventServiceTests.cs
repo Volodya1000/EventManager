@@ -5,6 +5,7 @@ using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Mapping;
 using EventManager.Application.Requests;
 using EventManager.Application.Services;
+using EventManager.Application.Validators;
 using EventManager.Domain.Models;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
@@ -36,7 +37,7 @@ public class EventServiceTests : IDisposable
 
     public EventServiceTests()
     {
-        // Arrange: Настройка in-memory базы данных
+        // Настройка in-memory базы данных
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
@@ -70,12 +71,15 @@ public class EventServiceTests : IDisposable
         _unitOfWorkMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
+        var validator = new CreateEventRequestValidator();
+
         _eventService = new EventService(
             _eventRepository,
             _mapper,
             _fileStorageMock.Object,
             _userRepositoryMock.Object,
-            _unitOfWorkMock.Object
+            _unitOfWorkMock.Object,
+             validator
         );
     }
 

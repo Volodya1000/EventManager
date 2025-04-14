@@ -6,6 +6,7 @@ using EventManager.Application.Interfaces.AuthTokenProcessor;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Services;
+using EventManager.Application.Validators;
 using EventManager.Domain.Constants;
 using EventManager.Domain.Models;
 using EventManager.Domain.Options;
@@ -13,6 +14,7 @@ using EventManager.Infrastructure.Processors;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
 using EventManager.Persistence.UnitOfWork;
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -53,6 +55,8 @@ builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<CreateEventRequestValidator>();
 
 builder.Services.AddApiAuthentication(builder.Configuration);
 
