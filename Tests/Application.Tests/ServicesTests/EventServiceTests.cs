@@ -5,6 +5,7 @@ using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Mapping;
 using EventManager.Application.Requests;
 using EventManager.Application.Services;
+using EventManager.Domain.Models;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -87,6 +88,8 @@ public class EventServiceTests : IDisposable
         _context.Database.EnsureDeleted();
         _context.Dispose();
     }
+
+    #region OperationsWithEventTests
 
 
     [Fact]
@@ -245,7 +248,7 @@ public class EventServiceTests : IDisposable
             Description: "Valid Desc",
             DateTime: DateTime.UtcNow.AddDays(4),
             Location: "Location",
-            Category: "Conference",
+            Category: "Sports",
             MaxParticipants: 15,
             ImageUrls: new List<string>()
         );
@@ -254,7 +257,7 @@ public class EventServiceTests : IDisposable
         var updateRequest = new UpdateEventRequest(
             Description: "  ", //Некорректное описание
             DateTime: DateTime.UtcNow.AddDays(4),
-            Location: "Location",
+            Location: "NewLocation",
             MaxParticipants: 15
         );
 
@@ -263,5 +266,97 @@ public class EventServiceTests : IDisposable
             () => _eventService.UpdateAsync(eventId, updateRequest));
     }
 
+    [Fact]
+    public async Task GetFilteredAsync_ReturnsFilteredResults()
+    {
+        // Arrange
+        // Создание двух событий с разной локацией
+        var request1 = new CreateEventRequest(
+            Name: "Filtered Event 1",
+            Description: "Desc",
+            DateTime: DateTime.UtcNow.AddDays(5),
+            Location: "New York",
+            Category: "Sports",
+            MaxParticipants: 20,
+            ImageUrls: new List<string>()
+        );
+        var request2 = new CreateEventRequest(
+            Name: "Filtered Event 2",
+            Description: "Desc",
+            DateTime: DateTime.UtcNow.AddDays(6),
+            Location: "Los Angeles",
+            Category: "Sports",
+            MaxParticipants: 20,
+            ImageUrls: new List<string>()
+        );
+        await _eventService.CreateAsync(request1);
+        await _eventService.CreateAsync(request2);
+
+        var filterRequest = new EventFilterRequest
+        {
+            Location = "New York"
+        };
+
+        // Act
+        var result = await _eventService.GetFilteredAsync(filterRequest, page: 1, pageSize: 10);
+
+        // Assert
+        Assert.Single(result.Data);
+        Assert.Equal("Filtered Event 1", result.Data.First().Name);
+    }
+
+    #endregion
+
+
+    #region OperationsWithParticipants Tests
+
+    [Fact]
+    public async Task RegisterAsync_WithValidData_RegistersParticipant()
+    {
+        // Arrange
+        // Создаём событие
+        var createEventRequest = new CreateEventRequest(
+            Name: "Football Match",
+            Description: "Exciting match",
+            DateTime: DateTime.UtcNow.AddDays(2),
+            Location: "Stadium",
+            Category: "Sports",
+            MaxParticipants: 20,
+            ImageUrls: new List<string>()
+        );
+        var eventId = await _eventService.CreateAsync(createEventRequest);
+
+        // Подготавливаем тестового пользователя и добавляем его в контекст,
+        // чтобы UpdateAsync в репозитории проверил, что такой пользователь существует.
+        var userId = Guid.NewGuid();
+        var testUser = User.Create("user@example.com", "Alice", "Johnson", DateTime.UtcNow.AddYears(-25));
+        testUser.Id = userId; // Принудительно задаём идентификатор
+
+        // Важно добавить пользователя в базу, так как в UpdateAsync происходит проверка существования пользователя
+        _context.Users.Add(testUser);
+        await _context.SaveChangesAsync();
+
+        // Настраиваем поведение userRepository, чтобы вернуть тестового пользователя
+        _userRepositoryMock.Setup(r => r.GetUserById(userId))
+            .ReturnsAsync(testUser);
+
+        var registerRequest = new RegisterParticipantRequest
+        {
+            EventId = eventId,
+            UserId = userId,
+            RegistrationDate = DateTime.UtcNow
+        };
+
+        // Act
+        var resultUserId = await _eventService.RegisterAsync(registerRequest);
+
+        // Assert
+        Assert.Equal(userId, resultUserId);
+        var updatedEvent = await _eventRepository.GetByIdAsync(eventId);
+        Assert.Contains(updatedEvent.Participants, p => p.UserId == userId);
+    }
+
+    
+    #endregion
 
 }
