@@ -8,6 +8,7 @@ using EventManager.Application.Services;
 using EventManager.Domain.Models;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
@@ -25,6 +26,11 @@ public class EventServiceTests : IDisposable
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
 
+    // Общие константы для тестовых данных
+    private const string DefaultCategory = "Sports";
+    private const string DefaultDescription = "Test Description";
+    private const int DefaultMaxParticipants = 10;
+
     // Тестируемый сервис
     private readonly EventService _eventService;
 
@@ -36,19 +42,11 @@ public class EventServiceTests : IDisposable
             .Options;
         _context = new ApplicationDbContext(options);
 
-        // Добавление тестовой категории (требуется для методов репозитория)
-        _context.Categories.Add(new EventManager.Persistence.Entities.CategoryEntity
-        {
-            Id = Guid.NewGuid(),
-            Name = "Sports"
-        });
-        _context.SaveChanges();
+        // Добавление тестовой категории (требуется для корректной работы методов репозитория)
+        SeedTestCategory();
 
         // Настройка AutoMapper для основного слоя
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile<EventProfile>();
-        });
+        var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<EventProfile>());
         _mapper = mapperConfig.CreateMapper();
 
         // Настройка AutoMapper для слоя Persistence
@@ -59,7 +57,7 @@ public class EventServiceTests : IDisposable
         });
         IMapper mapperForPersistance = mapperConfigForPersistance.CreateMapper();
 
-        // Создание реального репозитория с in-memory контекстом
+        // Создание  репозитория с in-memory контекстом
         _eventRepository = new EventRepository(_context, mapperForPersistance);
 
         // Создание моков для внешних сервисов
@@ -72,7 +70,6 @@ public class EventServiceTests : IDisposable
         _unitOfWorkMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-      
         _eventService = new EventService(
             _eventRepository,
             _mapper,
@@ -82,6 +79,15 @@ public class EventServiceTests : IDisposable
         );
     }
 
+    private void SeedTestCategory()
+    {
+        _context.Categories.Add(new EventManager.Persistence.Entities.CategoryEntity
+        {
+            Id = Guid.NewGuid(),
+            Name = DefaultCategory
+        });
+        _context.SaveChanges();
+    }
 
     public void Dispose()
     {
@@ -89,144 +95,152 @@ public class EventServiceTests : IDisposable
         _context.Dispose();
     }
 
+    #region Test Data Helpers    
+
+    // Общий метод для настройки мока пользователя
+    private void SetupUserMock(Guid userId, User user) =>
+        _userRepositoryMock.Setup(r => r.GetUserById(userId)).ReturnsAsync(user);
+
+    /// <summary>
+    /// Создает CreateEventRequest по умолчанию.
+    /// Если передан делегат configure, он будет применен к запросу.
+    /// </summary>
+    private CreateEventRequest CreateDefaultEventRequest(
+    Func<CreateEventRequest, CreateEventRequest> configure = null)
+    {
+        var request = new CreateEventRequest(
+            Name: Guid.NewGuid().ToString(),
+            Description: DefaultDescription,
+            DateTime: DateTime.UtcNow.AddDays(1),
+            Location: "Test Location",
+            Category: DefaultCategory,
+            MaxParticipants: DefaultMaxParticipants,
+            ImageUrls: new List<string>()
+        );
+
+        return configure != null ? configure(request) : request;
+    }
+
+    /// <summary>
+    /// Асинхронно создает тестовое событие, используя запрос по умолчанию.
+    /// Если передан делегат configure, он будет применен к запросу.
+    /// </summary>
+    private async Task<Guid> CreateTestEventAsync(
+    Func<CreateEventRequest, CreateEventRequest> configure = null)
+    {
+        // Создаем запрос по умолчанию и применяем настройки, если переданы
+        var request = CreateDefaultEventRequest(configure);
+
+        // Создаем событие и возвращаем его идентификатор
+        return await _eventService.CreateAsync(request);
+    }
+
+
+    /// <summary>
+    ///  Создание тестового пользователя и добавление его в контекст
+    ///  чтобы прошла проверка в UpdateAsync в EventRepository репозитории, что такой пользователь существует
+    /// </summary>
+    private async Task<User> CreateAndAddUserAsync(Guid userId = default)
+    {
+        var user = User.Create(
+            $"{Guid.NewGuid()}@test.com",
+            "Test",
+            "User",
+            DateTime.UtcNow.AddYears(-20)
+        );
+
+        if (userId != default) user.Id = userId;
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        return user;
+    }
+    #endregion
+
     #region OperationsWithEventTests
-
-
-    [Fact]
+    [Fact(DisplayName = "GetAllAsync: Возвращает PagedResponce с событиями")]
     public async Task GetAllAsync_ReturnsPagedResponse()
     {
         // Arrange
-        var createRequest = new CreateEventRequest(
-            Name: "Test Event",
-            Description: "Description",
-            DateTime: DateTime.UtcNow.AddDays(1),
-            Location: "Test Location",
-            Category: "Sports",
-            MaxParticipants: 10,
-            ImageUrls: new List<string> ()
-        );
-        await _eventService.CreateAsync(createRequest);
+        await CreateTestEventAsync();
 
         // Act
         var result = await _eventService.GetAllAsync(page: 1, pageSize: 10);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.Data);
+        result.Should().NotBeNull();
+        result.Data.Should().ContainSingle();
+        result.TotalRecords.Should().Be(1);
     }
 
-    [Fact]
+    [Fact(DisplayName = "CreateAsync: Создает событие с валидными данными")]
     public async Task CreateAsync_WithValidData_CreatesEvent()
     {
         // Arrange
-        var request = new CreateEventRequest(
-            Name: "Unique Event",
-            Description: "Valid Description",
-            DateTime: DateTime.UtcNow.AddDays(2),
-            Location: "Location A",
-            Category: "Sports",
-            MaxParticipants: 20,
-            ImageUrls: new List<string>()
-        );
+        var request = CreateDefaultEventRequest(r => r with { Name = "Unique Name" });
 
         // Act
         var eventId = await _eventService.CreateAsync(request);
 
         // Assert
-        Assert.NotEqual(Guid.Empty, eventId);
+        eventId.Should().NotBe(Guid.Empty);
+
         var createdEvent = await _eventRepository.GetByIdAsync(eventId);
-        Assert.NotNull(createdEvent);
-        Assert.Equal(request.Name, createdEvent.Name);
+        createdEvent.Should().NotBeNull();
+        createdEvent.Name.Should().Be(request.Name);
     }
 
 
-    [Fact]
+    [Fact(DisplayName = "CreateAsync: происходит exception при повторяющемся имени события")]
     public async Task CreateAsync_WithDuplicateName_ThrowsException()
     {
         // Arrange
-        var request = new CreateEventRequest(
-            Name: "Duplicate Event",
-            Description: "Desc",
-            DateTime: DateTime.UtcNow.AddDays(3),
-            Location: "Location B",
-            Category: "Sports",
-            MaxParticipants: 15,
-            ImageUrls: new List<string>()
-        );
-        
+        var request = CreateDefaultEventRequest();
         await _eventService.CreateAsync(request);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _eventService.CreateAsync(request));
+        await _eventService.Invoking(s => s.CreateAsync(request))
+            .Should().ThrowAsync<InvalidOperationException>();
     }
 
-    [Fact]
+    [Fact(DisplayName = "DeleteAsync: работает удаление существующего события")]
     public async Task DeleteAsync_WithExistingEvent_DeletesEvent()
     {
         // Arrange
-        var request = new CreateEventRequest(
-            Name: "Event To Delete",
-            Description: "Desc",
-            DateTime: DateTime.UtcNow.AddDays(5),
-            Location: "Delete Location",
-            Category: "Sports",
-            MaxParticipants: 10,
-            ImageUrls: new List<string>()
-        );
-        var eventId = await _eventService.CreateAsync(request);
+        var eventId = await CreateTestEventAsync();
 
         // Act
         await _eventService.DeleteAsync(eventId);
 
         // Assert
         var deletedEvent = await _eventRepository.GetByIdAsync(eventId);
-        Assert.Null(deletedEvent);
+        deletedEvent.Should().BeNull();
     }
 
-    [Fact]
+    [Fact(DisplayName = "GetByIdAsync: Возвращает события по ID")]
     public async Task GetByIdAsync_WithValidId_ReturnsEventDto()
     {
         // Arrange
-        var request = new CreateEventRequest(
-            Name: "Event GetById",
-            Description: "Desc",
-            DateTime: DateTime.UtcNow.AddDays(4),
-            Location: "Location",
-            Category: "Sports",
-            MaxParticipants: 12,
-            ImageUrls: new List<string>()
-        );
-        var eventId = await _eventService.CreateAsync(request);
+        var eventId = await CreateTestEventAsync();
 
         // Act
         var result = await _eventService.GetByIdAsync(eventId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(request.Name, result.Name);
+        result.Should().NotBeNull();
+        result.Id.Should().Be(eventId);
     }
 
-    [Fact]
+    [Fact(DisplayName = "UpdateAsync: Обновление данных события")]
     public async Task UpdateAsync_WithValidData_UpdatesEvent()
     {
         // Arrange
-        var request = new CreateEventRequest(
-            Name: "Event Update",
-            Description: "Old Description",
-            DateTime: DateTime.UtcNow.AddDays(4),
-            Location: "Old Location",
-            Category: "Sports",
-            MaxParticipants: 20,
-            ImageUrls: new List<string>()
-        );
-        var eventId = await _eventService.CreateAsync(request);
-
+        var eventId = await CreateTestEventAsync();
         var updateRequest = new UpdateEventRequest(
-            Description: "New Description",
-            DateTime: DateTime.UtcNow.AddDays(4), 
+            Description: "Updated Description",
+            DateTime: DateTime.UtcNow.AddDays(2),
             Location: "New Location",
-            MaxParticipants: 25
+            MaxParticipants: 20
         );
 
         // Act
@@ -234,75 +248,47 @@ public class EventServiceTests : IDisposable
 
         // Assert
         var updatedEvent = await _eventRepository.GetByIdAsync(eventId);
-        Assert.Equal(updateRequest.Description, updatedEvent.Description);
-        Assert.Equal(updateRequest.Location, updatedEvent.Location);
-        Assert.Equal(updateRequest.MaxParticipants, updatedEvent.MaxParticipants);
+        updatedEvent.Should().NotBeNull();
+        updatedEvent.Description.Should().Be(updateRequest.Description);
+        updatedEvent.Location.Should().Be(updateRequest.Location);
+        updatedEvent.MaxParticipants.Should().Be(updateRequest.MaxParticipants);
     }
 
-    [Fact]
+    [Fact(DisplayName = "UpdateAsync: происходит exception при пустом описании в UpdateEventRequest")]
     public async Task UpdateAsync_WithEmptyDescription_ThrowsException()
     {
         // Arrange
-        var request = new CreateEventRequest(
-            Name: "Event EmptyDesc",
-            Description: "Valid Desc",
-            DateTime: DateTime.UtcNow.AddDays(4),
-            Location: "Location",
-            Category: "Sports",
-            MaxParticipants: 15,
-            ImageUrls: new List<string>()
-        );
-        var eventId = await _eventService.CreateAsync(request);
-
+        var eventId = await CreateTestEventAsync();
         var updateRequest = new UpdateEventRequest(
-            Description: "  ", //Некорректное описание
-            DateTime: DateTime.UtcNow.AddDays(4),
-            Location: "NewLocation",
+            Description: "  ",
+            DateTime: DateTime.UtcNow.AddDays(1),
+            Location: "Location",
             MaxParticipants: 15
         );
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(
-            () => _eventService.UpdateAsync(eventId, updateRequest));
+        await _eventService.Invoking(s => s.UpdateAsync(eventId, updateRequest))
+            .Should().ThrowAsync<ArgumentException>();
     }
 
-    [Fact]
+    [Fact(DisplayName = "GetFilteredAsync: Корректно возвращает отфильтрованные результаты")]
     public async Task GetFilteredAsync_ReturnsFilteredResults()
     {
         // Arrange
-        // Создание двух событий с разной локацией
-        var request1 = new CreateEventRequest(
-            Name: "Filtered Event 1",
-            Description: "Desc",
-            DateTime: DateTime.UtcNow.AddDays(5),
-            Location: "New York",
-            Category: "Sports",
-            MaxParticipants: 20,
-            ImageUrls: new List<string>()
-        );
-        var request2 = new CreateEventRequest(
-            Name: "Filtered Event 2",
-            Description: "Desc",
-            DateTime: DateTime.UtcNow.AddDays(6),
-            Location: "Los Angeles",
-            Category: "Sports",
-            MaxParticipants: 20,
-            ImageUrls: new List<string>()
-        );
-        await _eventService.CreateAsync(request1);
-        await _eventService.CreateAsync(request2);
+        string location1 = "Location A";
+        string location2 = "Location B";
 
-        var filterRequest = new EventFilterRequest
-        {
-            Location = "New York"
-        };
+        await CreateTestEventAsync(r => r with { Location = location1 });
+        await CreateTestEventAsync(r => r with { Location = location2 });
+
+        var filterRequest = new EventFilterRequest { Location = location1 };
 
         // Act
         var result = await _eventService.GetFilteredAsync(filterRequest, page: 1, pageSize: 10);
 
         // Assert
-        Assert.Single(result.Data);
-        Assert.Equal("Filtered Event 1", result.Data.First().Name);
+        result.Data.Should().ContainSingle();
+        result.Data.First().Location.Should().Be(location1);
     }
 
     #endregion
@@ -310,40 +296,19 @@ public class EventServiceTests : IDisposable
 
     #region OperationsWithParticipants Tests
 
-    [Fact]
+    [Fact(DisplayName = "RegisterAsync: Регистрирует участника с валидными данными")]
     public async Task RegisterAsync_WithValidData_RegistersParticipant()
     {
         // Arrange
-        // Создаём событие
-        var createEventRequest = new CreateEventRequest(
-            Name: "Football Match",
-            Description: "Exciting match",
-            DateTime: DateTime.UtcNow.AddDays(2),
-            Location: "Stadium",
-            Category: "Sports",
-            MaxParticipants: 20,
-            ImageUrls: new List<string>()
-        );
-        var eventId = await _eventService.CreateAsync(createEventRequest);
+        var eventId = await CreateTestEventAsync();
 
-        // Подготавливаем тестового пользователя и добавляем его в контекст,
-        // чтобы UpdateAsync в репозитории проверил, что такой пользователь существует.
-        var userId = Guid.NewGuid();
-        var testUser = User.Create("user@example.com", "Alice", "Johnson", DateTime.UtcNow.AddYears(-25));
-        testUser.Id = userId; // Принудительно задаём идентификатор
-
-        // Важно добавить пользователя в базу, так как в UpdateAsync происходит проверка существования пользователя
-        _context.Users.Add(testUser);
-        await _context.SaveChangesAsync();
-
-        // Настраиваем поведение userRepository, чтобы вернуть тестового пользователя
-        _userRepositoryMock.Setup(r => r.GetUserById(userId))
-            .ReturnsAsync(testUser);
+        var user = await CreateAndAddUserAsync();
+        SetupUserMock(user.Id, user);
 
         var registerRequest = new RegisterParticipantRequest
         {
             EventId = eventId,
-            UserId = userId,
+            UserId = user.Id,
             RegistrationDate = DateTime.UtcNow
         };
 
@@ -351,12 +316,126 @@ public class EventServiceTests : IDisposable
         var resultUserId = await _eventService.RegisterAsync(registerRequest);
 
         // Assert
-        Assert.Equal(userId, resultUserId);
+        resultUserId.Should().Be(user.Id);
         var updatedEvent = await _eventRepository.GetByIdAsync(eventId);
-        Assert.Contains(updatedEvent.Participants, p => p.UserId == userId);
+        updatedEvent.Should().NotBeNull();
+        updatedEvent.Participants.Should().Contain(p => p.UserId == user.Id);
     }
 
-    
-    #endregion
+    [Fact(DisplayName = "RegisterAsync: происходит exception при отсутствии события")]
+    public async Task RegisterAsync_WhenEventNotFound_ThrowsException()
+    {
+        // Arrange
+        var user = await CreateAndAddUserAsync();
+        SetupUserMock(user.Id, user);
 
+        var registerRequest = new RegisterParticipantRequest
+        {
+            EventId = Guid.NewGuid(),
+            UserId = user.Id,
+            RegistrationDate = DateTime.UtcNow
+        };
+
+        // Act & Assert
+        await _eventService.Invoking(s => s.RegisterAsync(registerRequest))
+            .Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact(DisplayName = "RegisterAsync: происходит exception при добавлении в событие не существующего пользователя")]
+    public async Task RegisterAsync_WhenUserNotFound_ThrowsException()
+    {
+        // Arrange
+        var eventId = await CreateTestEventAsync();
+
+        // Не добавляем пользователя в контекст, чтобы он не был найден
+        var missingUserId = Guid.NewGuid();
+        SetupUserMock(missingUserId, null);
+
+        var registerRequest = new RegisterParticipantRequest
+        {
+            EventId = eventId,
+            UserId = missingUserId,
+            RegistrationDate = DateTime.UtcNow
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _eventService.RegisterAsync(registerRequest));
+    }
+
+    [Fact(DisplayName = "GetParticipantsAsync: Корректно возвращает список участников")]
+    public async Task GetParticipantsAsync_ReturnsRegisteredParticipant()
+    {
+        // Arrange
+        var eventId = await CreateTestEventAsync();
+        var user = await CreateAndAddUserAsync();
+        SetupUserMock(user.Id, user);  
+
+        await _eventService.RegisterAsync(new RegisterParticipantRequest
+        {
+            EventId = eventId,
+            UserId = user.Id,
+            RegistrationDate = DateTime.UtcNow
+        });
+
+        // Act
+        var result = await _eventService.GetParticipantsAsync(eventId, 1, 10);
+
+        // Assert
+        result.Data.Should().ContainSingle();
+        result.Data.First().UserId.Should().Be(user.Id);
+    }
+
+    [Fact(DisplayName = "CancelAsync: Корректно даляет участника из события")]
+    public async Task CancelAsync_WithValidData_RemovesParticipant()
+    {
+        // Arrange
+        var eventId = await CreateTestEventAsync();
+        var user = await CreateAndAddUserAsync();
+        SetupUserMock(user.Id, user);
+
+        await _eventService.RegisterAsync(new RegisterParticipantRequest
+        {
+            EventId = eventId,
+            UserId = user.Id,
+            RegistrationDate = DateTime.UtcNow
+        });
+
+        // Act
+        await _eventService.CancelAsync(eventId, user.Id);
+
+        // Assert
+        var updatedEvent = await _eventRepository.GetByIdAsync(eventId);
+        updatedEvent.Should().NotBeNull();
+        updatedEvent.Participants.Should().BeEmpty();
+    }
+
+    [Fact(DisplayName = "CancelAsync: Ошибка отмены участия - событие не найдено")]
+    public async Task CancelAsync_WhenEventNotFound_ThrowsException()
+    {
+        // Arrange
+        var user = await CreateAndAddUserAsync();
+        SetupUserMock(user.Id, user);
+
+        // Act & Assert
+        await _eventService.Invoking(s => s.CancelAsync(Guid.NewGuid(), user.Id))
+            .Should().ThrowExactlyAsync<InvalidOperationException>();
+    }
+
+    [Fact(DisplayName = "CancelAsync: происходит exception, если пользователь не найден")]
+    public async Task CancelAsync_WhenUserNotFound_ThrowsException()
+    {
+        // Arrange
+        var eventId = await CreateTestEventAsync();
+
+        // Добавляем корректного пользователя для успешного создания события,
+        // но для отмены регистрации будем запрашивать другого пользователя, которого нет в базе.
+        var missingUserId = Guid.NewGuid();
+        SetupUserMock(missingUserId, null);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _eventService.CancelAsync(eventId, missingUserId));
+    }
+    #endregion
 }
