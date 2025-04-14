@@ -29,7 +29,4 @@ public interface IEventRepository
     public Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId,
                                                                 int pageNumber,
                                                                  int pageSize);
-    public Task DeleteCategoryAsync(Guid categoryId);
-    public Task<Guid> AddCategoryAsync(string name);
-    public Task RenameCategoryAsync(Guid categoryId, string newName);
 }
