@@ -3,6 +3,7 @@ using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -17,14 +18,24 @@ public static class ParticipantEndpoints
             .RequireAuthorization();
 
         participantGroup.MapPost("/", RegisterParticipant)
+             .WithOpenApi(operation => new OpenApiOperation(operation)
+             {
+                 Summary = "Detects user from JWT",
+             })
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status403Forbidden);
 
+        
+
         participantGroup.MapGet("/", GetEventParticipants)
             .Produces<PagedResponse<ParticipantDto>>();
 
-        participantGroup.MapDelete("/cancel-me", CancelMyParticipation)
+        participantGroup.MapDelete("/", CancelMyParticipation)
+            .WithOpenApi(operation => new OpenApiOperation(operation)
+            {
+                Summary = "Detects user from JWT",
+            })
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
