@@ -54,9 +54,9 @@ public class EventRepositoryTests : IDisposable
         var newEvent = Event.Create(
             id: Guid.NewGuid(),
             name: "New Event",
-            description: "Description",
+            description: "Description of event",
             dateTime: DateTime.UtcNow.AddDays(1),
-            location: "Location",
+            location: "Location of event",
             category: "Sports",
             maxParticipants: 10,
             imageUrls: new List<string> { "https://example.com/url1", 
@@ -86,9 +86,9 @@ public class EventRepositoryTests : IDisposable
             var @event = Event.Create(
                 id: Guid.NewGuid(),
                 name: $"Event {i}",
-                description: $"Description {i}",
+                description: $"Description of event {i}",
                 dateTime: DateTime.UtcNow.AddDays(i),
-                location: $"Location {i}",
+                location: $"Location of event {i}",
                 category: "Sports",
                 maxParticipants: 10);
 

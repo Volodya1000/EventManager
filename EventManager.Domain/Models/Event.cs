@@ -1,12 +1,18 @@
 ﻿namespace EventManager.Domain.Models;
+
 public class Event
 {
+    public const int MIN_DESCRIPTION_LENGTH = 15;
+    public const int MAX_DESCRIPTION_LENGTH = 2000;
+    public const int MIN_LOCATION_LENGTH = 10;
+    public const int MAX_LOCATION_LENGTH = 200;
+
     public Guid Id { get; }
-    public string Name { get;  }
+    public string Name { get; }
     public string Description { get; private set; }
     public DateTime DateTime { get; private set; }
     public string Location { get; private set; }
-    public string  Category { get; }
+    public string Category { get; }
     public int MaxParticipants { get; private set; }
     public int RegisteredParticipants => _participants.Count;
 
@@ -55,16 +61,26 @@ public class Event
         if (dateTime < DateTime.UtcNow)
             throw new ArgumentException("Event date cannot be in the past", nameof(dateTime));
 
-        return new Event(
-           id,
-           name.Trim(),
-           description?.Trim(),
-           dateTime,
-           location.Trim(),
-           category,
-           maxParticipants,
-           imageUrls);
+        if (description == null)
+            throw new ArgumentException("Description cannot be null", nameof(description));
 
+        string trimmedDescription = description.Trim();
+        if (trimmedDescription.Length < MIN_DESCRIPTION_LENGTH || trimmedDescription.Length > MAX_DESCRIPTION_LENGTH)
+            throw new ArgumentException($"Description must be between {MIN_DESCRIPTION_LENGTH} and {MAX_DESCRIPTION_LENGTH} characters long.", nameof(description));
+
+        string trimmedLocation = location.Trim();
+        if (trimmedLocation.Length < MIN_LOCATION_LENGTH || trimmedLocation.Length > MAX_LOCATION_LENGTH)
+            throw new ArgumentException($"Location must be between {MIN_LOCATION_LENGTH} and {MAX_LOCATION_LENGTH} characters long.", nameof(location));
+
+        return new Event(
+            id,
+            name.Trim(),
+            trimmedDescription,
+            dateTime,
+            trimmedLocation,
+            category,
+            maxParticipants,
+            imageUrls);
     }
 
     public void AddParticipant(Participant participant)
@@ -84,13 +100,16 @@ public class Event
         return participant != null && _participants.Remove(participant);
     }
 
-
     public void UpdateDescription(string newDescription)
     {
         if (string.IsNullOrWhiteSpace(newDescription))
             throw new ArgumentException("Description cannot be empty or whitespace.", nameof(newDescription));
 
-        Description = newDescription.Trim();
+        string trimmedDescription = newDescription.Trim();
+        if (trimmedDescription.Length < MIN_DESCRIPTION_LENGTH || trimmedDescription.Length > MAX_DESCRIPTION_LENGTH)
+            throw new ArgumentException($"Description must be between {MIN_DESCRIPTION_LENGTH} and {MAX_DESCRIPTION_LENGTH} characters long.", nameof(newDescription));
+
+        Description = trimmedDescription;
     }
 
     public void UpdateDateTime(DateTime newDateTime)
@@ -106,7 +125,11 @@ public class Event
         if (string.IsNullOrWhiteSpace(newLocation))
             throw new ArgumentException("Location cannot be empty or whitespace.", nameof(newLocation));
 
-        Location = newLocation.Trim();
+        string trimmedLocation = newLocation.Trim();
+        if (trimmedLocation.Length < MIN_LOCATION_LENGTH || trimmedLocation.Length > MAX_LOCATION_LENGTH)
+            throw new ArgumentException($"Location must be between {MIN_LOCATION_LENGTH} and {MAX_LOCATION_LENGTH} characters long.", nameof(newLocation));
+
+        Location = trimmedLocation;
     }
 
     public void UpdateMaxParticipants(int newMax)
@@ -118,6 +141,5 @@ public class Event
             throw new ArgumentException("New max participants cannot be less than registered participants.", nameof(newMax));
 
         MaxParticipants = newMax;
-    }    
+    }
 }
-
