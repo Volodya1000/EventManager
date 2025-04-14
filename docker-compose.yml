@@ -1,0 +1,6 @@
+services:
+  eventmanager.api:
+    image: ${DOCKER_REGISTRY-}eventmanagerapi
+    build:
+      context: .
+      dockerfile: EventManager.Api/Dockerfile
