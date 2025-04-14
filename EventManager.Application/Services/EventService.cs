@@ -16,9 +16,7 @@ public class EventService : IEventService
 {
     private readonly IEventRepository _eventRepository;
     private readonly IMapper _mapper;
-    private readonly IFileStorage _fileStorage;
     private readonly IUserRepository _userRepository;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<CreateEventRequest> _validator;
 
     public EventService(
@@ -26,14 +24,11 @@ public class EventService : IEventService
         IMapper mapper,
         IFileStorage fileStorage,
         IUserRepository userRepository,
-        IUnitOfWork unitOfWork,
         IValidator<CreateEventRequest> validator)
     {
         _eventRepository = eventRepository;
         _mapper = mapper;
-        _fileStorage = fileStorage;
         _userRepository = userRepository;
-        _unitOfWork = unitOfWork;
         _validator = validator;
     }
 

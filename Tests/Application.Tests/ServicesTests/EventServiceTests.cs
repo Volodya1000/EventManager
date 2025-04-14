@@ -1,17 +1,13 @@
-﻿using AutoMapper;
+﻿using Application.Tests.Factories;
+using AutoMapper;
 using EventManager.Application.FileStorage;
-using EventManager.Application.Interfaces;
 using EventManager.Application.Interfaces.Repositories;
-using EventManager.Application.Mapping;
 using EventManager.Application.Requests;
 using EventManager.Application.Services;
 using EventManager.Application.Validators;
-using EventManager.Domain.Models;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Application.Tests.ServicesTests;
@@ -22,76 +18,26 @@ public class EventServiceTests : IDisposable
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly EventRepository _eventRepository;
-
-    // Моки для внешних зависимостей
-    private readonly Mock<IFileStorage> _fileStorageMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-
-    // Общие константы для тестовых данных
-    private const string DefaultCategory = "Sports";
-    private const string DefaultDescription = "Test Description";
-    private const int DefaultMaxParticipants = 10;
-
-    // Тестируемый сервис
     private readonly EventService _eventService;
 
     public EventServiceTests()
     {
-        // Настройка in-memory базы данных
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        _context = new ApplicationDbContext(options);
+        _context = EventTestFactory.CreateInMemoryContext(); 
 
-        // Добавление тестовой категории (требуется для корректной работы методов репозитория)
-        SeedTestCategory();
+        _mapper = EventTestFactory.CreateApplicationMapper();
 
-        // Настройка AutoMapper для основного слоя
-        var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<EventProfile>());
-        _mapper = mapperConfig.CreateMapper();
+        var persistenceMapper = EventTestFactory.CreatePersistenceMapper();
+        _eventRepository = new EventRepository(_context, persistenceMapper);
 
-        // Настройка AutoMapper для слоя Persistence
-        var mapperConfigForPersistance = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile<EventManager.Persistence.Mapping.EventProfile>();
-            cfg.AddProfile<EventManager.Persistence.Mapping.ParticipantProfile>();
-        });
-        IMapper mapperForPersistance = mapperConfigForPersistance.CreateMapper();
-
-        // Создание  репозитория с in-memory контекстом
-        _eventRepository = new EventRepository(_context, mapperForPersistance);
-
-        // Создание моков для внешних сервисов
-        _fileStorageMock = new Mock<IFileStorage>();
         _userRepositoryMock = new Mock<IUserRepository>();
-        _unitOfWorkMock = new Mock<IUnitOfWork>();
-
-        // Настройка методов транзакций UnitOfWork
-        _unitOfWorkMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
-        _unitOfWorkMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
-        _unitOfWorkMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
-
-        var validator = new CreateEventRequestValidator();
 
         _eventService = new EventService(
             _eventRepository,
             _mapper,
-            _fileStorageMock.Object,
+            new Mock<IFileStorage>().Object,
             _userRepositoryMock.Object,
-            _unitOfWorkMock.Object,
-             validator
-        );
-    }
-
-    private void SeedTestCategory()
-    {
-        _context.Categories.Add(new EventManager.Persistence.Entities.CategoryEntity
-        {
-            Id = Guid.NewGuid(),
-            Name = DefaultCategory
-        });
-        _context.SaveChanges();
+            new CreateEventRequestValidator());
     }
 
     public void Dispose()
@@ -100,74 +46,12 @@ public class EventServiceTests : IDisposable
         _context.Dispose();
     }
 
-    #region Test Data Helpers    
-
-    // Общий метод для настройки мока пользователя
-    private void SetupUserMock(Guid userId, User user) =>
-        _userRepositoryMock.Setup(r => r.GetUserById(userId)).ReturnsAsync(user);
-
-    /// <summary>
-    /// Создает CreateEventRequest по умолчанию.
-    /// Если передан делегат configure, он будет применен к запросу.
-    /// </summary>
-    private CreateEventRequest CreateDefaultEventRequest(
-    Func<CreateEventRequest, CreateEventRequest> configure = null)
-    {
-        var request = new CreateEventRequest(
-            Name: Guid.NewGuid().ToString(),
-            Description: DefaultDescription,
-            DateTime: DateTime.UtcNow.AddDays(1),
-            Location: "Test Location",
-            Category: DefaultCategory,
-            MaxParticipants: DefaultMaxParticipants,
-            ImageUrls: new List<string>()
-        );
-
-        return configure != null ? configure(request) : request;
-    }
-
-    /// <summary>
-    /// Асинхронно создает тестовое событие, используя запрос по умолчанию.
-    /// Если передан делегат configure, он будет применен к запросу.
-    /// </summary>
-    private async Task<Guid> CreateTestEventAsync(
-    Func<CreateEventRequest, CreateEventRequest> configure = null)
-    {
-        // Создаем запрос по умолчанию и применяем настройки, если переданы
-        var request = CreateDefaultEventRequest(configure);
-
-        // Создаем событие и возвращаем его идентификатор
-        return await _eventService.CreateAsync(request);
-    }
-
-
-    /// <summary>
-    ///  Создание тестового пользователя и добавление его в контекст
-    ///  чтобы прошла проверка в UpdateAsync в EventRepository репозитории, что такой пользователь существует
-    /// </summary>
-    private async Task<User> CreateAndAddUserAsync(Guid userId = default)
-    {
-        var user = User.Create(
-            $"{Guid.NewGuid()}@test.com",
-            "Test",
-            "User",
-            DateTime.UtcNow.AddYears(-20)
-        );
-
-        if (userId != default) user.Id = userId;
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-        return user;
-    }
-    #endregion
-
     #region OperationsWithEventTests
     [Fact(DisplayName = "GetAllAsync: Возвращает PagedResponce с событиями")]
     public async Task GetAllAsync_ReturnsPagedResponse()
     {
         // Arrange
-        await CreateTestEventAsync();
+        await EventTestFactory.CreateTestEventAsync(_eventService);
 
         // Act
         var result = await _eventService.GetAllAsync(page: 1, pageSize: 10);
@@ -182,7 +66,7 @@ public class EventServiceTests : IDisposable
     public async Task CreateAsync_WithValidData_CreatesEvent()
     {
         // Arrange
-        var request = CreateDefaultEventRequest(r => r with { Name = "Unique Name" });
+        var request = EventTestFactory.CreateDefaultEventRequest(r => r with { Name = "Unique Name" });
 
         // Act
         var eventId = await _eventService.CreateAsync(request);
@@ -200,7 +84,7 @@ public class EventServiceTests : IDisposable
     public async Task CreateAsync_WithDuplicateName_ThrowsException()
     {
         // Arrange
-        var request = CreateDefaultEventRequest();
+        var request = EventTestFactory.CreateDefaultEventRequest();
         await _eventService.CreateAsync(request);
 
         // Act & Assert
@@ -212,7 +96,7 @@ public class EventServiceTests : IDisposable
     public async Task DeleteAsync_WithExistingEvent_DeletesEvent()
     {
         // Arrange
-        var eventId = await CreateTestEventAsync();
+        var eventId = await EventTestFactory.CreateTestEventAsync(_eventService);
 
         // Act
         await _eventService.DeleteAsync(eventId);
@@ -226,7 +110,7 @@ public class EventServiceTests : IDisposable
     public async Task GetByIdAsync_WithValidId_ReturnsEventDto()
     {
         // Arrange
-        var eventId = await CreateTestEventAsync();
+        var eventId = await EventTestFactory.CreateTestEventAsync(_eventService);
 
         // Act
         var result = await _eventService.GetByIdAsync(eventId);
@@ -240,7 +124,7 @@ public class EventServiceTests : IDisposable
     public async Task UpdateAsync_WithValidData_UpdatesEvent()
     {
         // Arrange
-        var eventId = await CreateTestEventAsync();
+        var eventId = await EventTestFactory.CreateTestEventAsync(_eventService);
         var updateRequest = new UpdateEventRequest(
             Description: "Updated Description",
             DateTime: DateTime.UtcNow.AddDays(2),
@@ -263,7 +147,7 @@ public class EventServiceTests : IDisposable
     public async Task UpdateAsync_WithEmptyDescription_ThrowsException()
     {
         // Arrange
-        var eventId = await CreateTestEventAsync();
+        var eventId = await EventTestFactory.CreateTestEventAsync(_eventService);
         var updateRequest = new UpdateEventRequest(
             Description: "  ",
             DateTime: DateTime.UtcNow.AddDays(1),
@@ -283,8 +167,8 @@ public class EventServiceTests : IDisposable
         string location1 = "Location A";
         string location2 = "Location B";
 
-        await CreateTestEventAsync(r => r with { Location = location1 });
-        await CreateTestEventAsync(r => r with { Location = location2 });
+        await EventTestFactory.CreateTestEventAsync(_eventService, r => r with { Location = location1 });
+        await EventTestFactory.CreateTestEventAsync(_eventService, r => r with { Location = location2 });
 
         var filterRequest = new EventFilterRequest { Location = location1 };
 
@@ -305,10 +189,9 @@ public class EventServiceTests : IDisposable
     public async Task RegisterAsync_WithValidData_RegistersParticipant()
     {
         // Arrange
-        var eventId = await CreateTestEventAsync();
-
-        var user = await CreateAndAddUserAsync();
-        SetupUserMock(user.Id, user);
+        var eventId = await EventTestFactory.CreateTestEventAsync(_eventService);
+        var user = await EventTestFactory.CreateAndAddUserAsync(_context);
+        EventTestFactory.SetupUserMock(_userRepositoryMock, user.Id, user);
 
         // Act
         var resultUserId = await _eventService.RegisterAsync(eventId, user.Id);
@@ -324,8 +207,8 @@ public class EventServiceTests : IDisposable
     public async Task RegisterAsync_WhenEventNotFound_ThrowsException()
     {
         // Arrange
-        var user = await CreateAndAddUserAsync();
-        SetupUserMock(user.Id, user);
+        var user = await EventTestFactory.CreateAndAddUserAsync(_context);
+        EventTestFactory.SetupUserMock(_userRepositoryMock, user.Id, user);
 
         // Act & Assert
         await _eventService.Invoking(s => s.RegisterAsync(Guid.NewGuid(), user.Id))
@@ -336,11 +219,9 @@ public class EventServiceTests : IDisposable
     public async Task RegisterAsync_WhenUserNotFound_ThrowsException()
     {
         // Arrange
-        var eventId = await CreateTestEventAsync();
-
-        // Не добавляем пользователя в контекст, чтобы он не был найден
+        var eventId = await EventTestFactory.CreateTestEventAsync(_eventService);
         var missingUserId = Guid.NewGuid();
-        SetupUserMock(missingUserId, null);
+        EventTestFactory.SetupUserMock(_userRepositoryMock, missingUserId, null);
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -351,10 +232,9 @@ public class EventServiceTests : IDisposable
     public async Task GetParticipantsAsync_ReturnsRegisteredParticipant()
     {
         // Arrange
-        var eventId = await CreateTestEventAsync();
-        var user = await CreateAndAddUserAsync();
-        SetupUserMock(user.Id, user);  
-
+        var eventId = await EventTestFactory.CreateTestEventAsync(_eventService);
+        var user = await EventTestFactory.CreateAndAddUserAsync(_context);
+        EventTestFactory.SetupUserMock(_userRepositoryMock, user.Id, user);
         await _eventService.RegisterAsync(eventId, user.Id);
 
         // Act
@@ -365,15 +245,14 @@ public class EventServiceTests : IDisposable
         result.Data.First().UserId.Should().Be(user.Id);
     }
 
-    [Fact(DisplayName = "CancelAsync: Корректно даляет участника из события")]
+    [Fact(DisplayName = "CancelAsync: Корректно eдаляет участника из события")]
     public async Task CancelAsync_WithValidData_RemovesParticipant()
     {
         // Arrange
-        var eventId = await CreateTestEventAsync();
-        var user = await CreateAndAddUserAsync();
-        SetupUserMock(user.Id, user);
-
-        await _eventService.RegisterAsync(eventId,user.Id);
+        var eventId = await EventTestFactory.CreateTestEventAsync(_eventService);
+        var user = await EventTestFactory.CreateAndAddUserAsync(_context);
+        EventTestFactory.SetupUserMock(_userRepositoryMock, user.Id, user);
+        await _eventService.RegisterAsync(eventId, user.Id);
 
         // Act
         await _eventService.CancelAsync(eventId, user.Id);
@@ -388,8 +267,8 @@ public class EventServiceTests : IDisposable
     public async Task CancelAsync_WhenEventNotFound_ThrowsException()
     {
         // Arrange
-        var user = await CreateAndAddUserAsync();
-        SetupUserMock(user.Id, user);
+        var user = await EventTestFactory.CreateAndAddUserAsync(_context);
+        EventTestFactory.SetupUserMock(_userRepositoryMock, user.Id, user); 
 
         // Act & Assert
         await _eventService.Invoking(s => s.CancelAsync(Guid.NewGuid(), user.Id))
@@ -400,12 +279,12 @@ public class EventServiceTests : IDisposable
     public async Task CancelAsync_WhenUserNotFound_ThrowsException()
     {
         // Arrange
-        var eventId = await CreateTestEventAsync();
-
+        var eventId = await EventTestFactory.CreateTestEventAsync(_eventService);
         // Добавляем корректного пользователя для успешного создания события,
         // но для отмены регистрации будем запрашивать другого пользователя, которого нет в базе.
+
         var missingUserId = Guid.NewGuid();
-        SetupUserMock(missingUserId, null);
+        EventTestFactory.SetupUserMock(_userRepositoryMock, missingUserId, null);
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(

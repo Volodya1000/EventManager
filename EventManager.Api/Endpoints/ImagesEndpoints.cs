@@ -107,9 +107,9 @@ public static class ImagesEndpoints
     private static async Task<IResult> DeleteEventImage(
         Guid eventId,
         string filename,
-        [FromServices] IEventService eventService)
+        [FromServices] IImageService imageService)
     {
-        await eventService.DeleteImageAsync(eventId, filename);
+        await imageService.DeleteImageAsync(eventId, filename);
         return Results.NoContent();
     }
 }
