@@ -100,25 +100,4 @@ public static class EventEndpoints
         return Results.Ok(result);
     }
 
-    private static async Task<IResult> UploadEventImage(
-        Guid id,
-        IFormFile image,
-        IEventService service)
-    {
-        var imageUrl = await service.UploadImageAsync(id, image);
-        return Results.Ok(imageUrl);
-    }
-
-    private static async Task<IResult> DeleteEventImage(
-       Guid id,
-       string url,
-       IFormFile image,
-       IEventService service)
-    {
-
-
-       await service.DeleteImageAsync(id, url);
-
-       return Results.NoContent();
-    }
 }

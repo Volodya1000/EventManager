@@ -17,7 +17,9 @@ public static class ApiExtensions
     {
         app.MapUserEndpoints();
         app.MapEventEndpoints();
+        app.MapParticipantEndpoints();
         app.MapImagesEndpoints();
+        app.MapCategoriesEndpoints();
     }
 
     public static void AddApiAuthentication(
