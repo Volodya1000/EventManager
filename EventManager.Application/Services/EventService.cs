@@ -1,14 +1,10 @@
 ﻿using AutoMapper;
 using EventManager.Application.Dtos;
-using EventManager.Application.FileStorage;
-using EventManager.Application.Interfaces;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
 using FluentValidation;
-using Microsoft.AspNetCore.Http;
-using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Application.Services;
 
@@ -17,19 +13,24 @@ public class EventService : IEventService
     private readonly IEventRepository _eventRepository;
     private readonly IMapper _mapper;
     private readonly IUserRepository _userRepository;
-    private readonly IValidator<CreateEventRequest> _validator;
+    private readonly IValidator<CreateEventRequest> _createValidator;
+    private readonly IValidator<UpdateEventRequest> _updateValidator;
+    private readonly IValidator<EventFilterRequest> _filterValidator;
 
     public EventService(
         IEventRepository eventRepository,
         IMapper mapper,
-        IFileStorage fileStorage,
         IUserRepository userRepository,
-        IValidator<CreateEventRequest> validator)
+        IValidator<CreateEventRequest> createValidator,
+        IValidator<UpdateEventRequest> updateValidator,
+        IValidator<EventFilterRequest> filterValidator)
     {
         _eventRepository = eventRepository;
         _mapper = mapper;
         _userRepository = userRepository;
-        _validator = validator;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
+        _filterValidator = filterValidator;
     }
 
 
@@ -41,7 +42,7 @@ public class EventService : IEventService
 
     public async Task<Guid> CreateAsync(CreateEventRequest request)
     {
-        _validator.ValidateAndThrow(request);
+        _createValidator.ValidateAndThrow(request);
 
         var exists = await _eventRepository.GetByNameAsync(request.Name);
         if (exists != null)
@@ -76,6 +77,8 @@ public class EventService : IEventService
 
     public async Task UpdateAsync(Guid eventId, UpdateEventRequest request)
     {
+        _updateValidator.ValidateAndThrow(request);
+
         Event eventById = await _eventRepository.GetByIdAsync(eventId);
 
         eventById.UpdateDescription(request.Description);
@@ -92,6 +95,8 @@ public class EventService : IEventService
     #region OperationsWithParticipants
     public async Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize)
     {
+        _filterValidator.ValidateAndThrow(filterRequest);
+
         return await _eventRepository.GetFilteredAsync(filterRequest, page, pageSize);
     }
 
