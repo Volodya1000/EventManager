@@ -22,9 +22,9 @@ public interface IEventRepository
 
     public Task DeleteAsync(Guid id);
 
-    public Task AddImageToEventAsync(Guid eventId, string imageUrl);
+    public Task<PagedResponse<EventDto>> GetEventsByUserAsync(Guid userId, int pageNumber, int pageSize);
 
-    public Task DeleteImageAsyncWithoutCommit(Guid eventId, string imageUrl);
+
 
     public Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId,
                                                                 int pageNumber,

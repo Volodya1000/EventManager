@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Identity;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Domain.Constants;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using Microsoft.AspNetCore.Http;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace EventManager.Application.Services;
 
@@ -16,17 +19,20 @@ public class AccountService : IAccountService
     private readonly UserManager<User> _userManager;
     private readonly IUserRepository _userRepository;
     private readonly ILogger<AccountService> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AccountService(
         IAuthTokenProcessor authTokenProcessor,
         UserManager<User> userManager,
         IUserRepository userRepository,
-        ILogger<AccountService> logger)
+        ILogger<AccountService> logger,
+        IHttpContextAccessor httpContextAccessor)
     {
         _authTokenProcessor = authTokenProcessor;
         _userManager = userManager;
         _userRepository = userRepository;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
     }
 
 
@@ -136,5 +142,15 @@ public class AccountService : IAccountService
             : TimeSpan.FromDays(7); // Если токена нет, используем дефолт
 
         _logger.LogInformation("User with email:{Email} promoted to Admin role", email);
+    }
+
+    public Guid? GetUserIdFromToken()
+    {
+        var userIdClaim = _httpContextAccessor.HttpContext?
+            .User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+        return Guid.TryParse(userIdClaim, out var userId)
+            ? userId
+            : null;
     }
 }

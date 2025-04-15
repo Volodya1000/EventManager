@@ -198,44 +198,25 @@ public class EventRepository : IEventRepository
         return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
     }
 
-
-    #endregion
-
-
-
-
-    #region OperationsWithImages
-
-    public async Task AddImageToEventAsync(Guid eventId, string imageUrl)
+    public async Task<PagedResponse<EventDto>> GetEventsByUserAsync(Guid userId, int pageNumber, int pageSize)
     {
-        var entity = await _context.Events
-            .Include(e => e.Images)
-            .FirstOrDefaultAsync(e => e.Id == eventId);
+        var query = _context.Events
+            .AsNoTracking()
+            .Where(e => e.Participants.Any(p => p.UserId == userId))
+            .ProjectTo<EventDto>(_mapper.ConfigurationProvider);
 
-        if (entity == null)
-            throw new InvalidOperationException("Event not found");
-        var newImage = new ImageEntity { Id = Guid.NewGuid(), Url = imageUrl };
-        entity.Images.Add(newImage);
-        await _context.SaveChangesAsync();
-    }
+        var totalRecords = await query.CountAsync();
+        var data = await query
+            .OrderBy(e => e.DateTime)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
-    public async Task DeleteImageAsyncWithoutCommit(Guid eventId, string imageUrl)
-    {
-        var entity = await _context.Events
-            .Include(e => e.Images)
-            .FirstOrDefaultAsync(e => e.Id == eventId);
-
-        if (entity == null)
-            throw new InvalidOperationException("Event not found");
-
-        var imageToRemove = entity.Images.FirstOrDefault(i => i.Url == imageUrl);
-        if (imageToRemove != null)
-            entity.Images.Remove(imageToRemove);
+        return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
     }
 
 
     #endregion
-
 
 
     #region OperationsWithParticipants

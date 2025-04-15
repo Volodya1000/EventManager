@@ -2,6 +2,8 @@
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Domain.Constants;
+using EventManager.Domain.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 
@@ -43,6 +45,14 @@ public static class EventEndpoints
             {
                 Summary = "Filter events by criteria",
             });
+
+        eventGroup.MapGet("/user/{userId}", GetEventsByUser)
+           .RequireAuthorization()
+           .Produces(StatusCodes.Status404NotFound)
+           .WithOpenApi(operation => new OpenApiOperation(operation)
+           {
+               Summary = "Receiving events in which the user is a participant Required Authorization",
+           });
 
         return app;
     }
@@ -99,4 +109,16 @@ public static class EventEndpoints
         return Results.Ok(result);
     }
 
+    private static async Task<IResult> GetEventsByUser(
+        [FromServices] IEventService eventService,
+        [FromServices] IAccountService accountService,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var userId = accountService.GetUserIdFromToken();
+        if (!userId.HasValue) return Results.Forbid();
+
+        var result = await eventService.GetEventsByUserAsync((Guid)userId, page, pageSize);
+        return Results.Ok(result);
+    }
 }

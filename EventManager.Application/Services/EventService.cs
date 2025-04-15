@@ -90,6 +90,15 @@ public class EventService : IEventService
 
         await _eventRepository.UpdateAsync(eventById);
     }
+
+    public async Task<PagedResponse<EventDto>> GetEventsByUserAsync(Guid userId, int page, int pageSize)
+    {
+        var userExists = await _userRepository.GetUserById(userId) != null;
+        if (!userExists)
+            throw new InvalidOperationException($"User with id: {userId} not found");
+
+        return await _eventRepository.GetEventsByUserAsync(userId, page, pageSize);
+    }
     #endregion
 
     #region OperationsWithParticipants

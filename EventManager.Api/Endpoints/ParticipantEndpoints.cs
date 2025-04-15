@@ -1,6 +1,7 @@
 ﻿using EventManager.Application.Dtos;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
+using EventManager.Application.Services;
 using EventManager.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
@@ -44,16 +45,17 @@ public static class ParticipantEndpoints
     }
 
     private static async Task<IResult> RegisterParticipant(
-        Guid eventId,
-        IEventService service,
+         Guid eventId,
+        [FromServices] IAccountService accountService,
+        [FromServices] IEventService eventService,
         IHttpContextAccessor httpContextAccessor)
     {
-        var userId = GetUserIdFromToken(httpContextAccessor.HttpContext);
+        var userId = accountService.GetUserIdFromToken();
         if (!userId.HasValue) return Results.Forbid();
 
         try
         {
-            var participationId = await service.RegisterAsync(eventId, userId.Value);
+            var participationId = await eventService.RegisterAsync(eventId, userId.Value);
             return Results.Created($"/api/events/{eventId}/participants/{participationId}", participationId);
         }
         catch (InvalidOperationException ex)
@@ -64,7 +66,7 @@ public static class ParticipantEndpoints
 
     private static async Task<IResult> GetEventParticipants(
         Guid eventId,
-        IEventService service,
+        [FromServices] IEventService service,
         int pageNumber = 1,
         int pageSize = 10)
     {
@@ -74,15 +76,16 @@ public static class ParticipantEndpoints
 
     private static async Task<IResult> CancelMyParticipation(
         Guid eventId,
-        IEventService service,
+        [FromServices] IAccountService accountService,
+        [FromServices] IEventService eventService,
         IHttpContextAccessor httpContextAccessor)
     {
-        var userId = GetUserIdFromToken(httpContextAccessor.HttpContext);
+        var userId = accountService.GetUserIdFromToken();
         if (!userId.HasValue) return Results.Forbid();
 
         try
         {
-            await service.CancelAsync(eventId, userId.Value);
+            await eventService.CancelAsync(eventId, userId.Value);
             return Results.NoContent();
         }
         catch (InvalidOperationException ex)
@@ -91,15 +94,5 @@ public static class ParticipantEndpoints
                 ? Results.NotFound(ex.Message)
                 : Results.BadRequest(ex.Message);
         }
-    }
-
-    //Благодаря этой функции зарегистрироваться и отменить регистрацию можно только для себя но, не для других
-    private static Guid? GetUserIdFromToken(HttpContext? context)
-    {
-        var userIdClaim = context?.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-
-        return Guid.TryParse(userIdClaim, out var userId)
-            ? userId
-            : null;
     }
 }
