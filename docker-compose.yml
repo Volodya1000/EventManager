@@ -1,3 +1,7 @@
+version: '3.8'
+
+name: eventmanager
+
 services:
   eventmanager.api:
     image: ${DOCKER_REGISTRY-}eventmanagerapi
@@ -12,6 +16,8 @@ services:
       - ./data/uploads:/data/uploads
     environment:
       - FILE_STORAGE_PATH=/data/uploads
+    networks:
+      - eventmanager-network
   eventmanager.database:
     image: postgres:latest
     container_name: eventmanager.database
@@ -23,8 +29,17 @@ services:
       - ./.containers/EventManagerDataBase:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+     - eventmanager-network
+
   eventmanager.cache:
+    container_name: eventmanager.redis
     image: redis:latest
     restart: always
     ports:
       - '6379:6379'
+    networks:
+      - eventmanager-network
+networks: 
+  eventmanager-network:
+    driver: bridge
