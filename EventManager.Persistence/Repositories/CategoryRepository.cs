@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EventManager.Application.Interfaces.Repositories;
+using EventManager.Domain.Models;
 using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +9,18 @@ namespace EventManager.Persistence.Repositories;
 public class CategoryRepository: ICategoryRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public CategoryRepository(ApplicationDbContext context)
+    public CategoryRepository(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
+    }
+
+    public async Task<IEnumerable<Category>> GetCategoriesAsync()
+    {
+        var categories = await _context.Categories.ToListAsync();
+        return _mapper.Map<List<Category>>(categories);
     }
 
     public async Task<Guid> AddCategoryAsync(string name)

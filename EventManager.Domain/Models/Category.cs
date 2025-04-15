@@ -5,9 +5,12 @@ public class Category
     public Guid Id { get; init; }
     public string Name { get; init; }
 
-    public Category(Guid id, string name)
+    public static Category Create(Guid id, string name)
     {
-        Id = id;
-        Name = name;
+        return new Category
+        {
+            Id = id,
+            Name = name
+        };
     }
 }

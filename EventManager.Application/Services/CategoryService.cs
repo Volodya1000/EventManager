@@ -1,5 +1,6 @@
 ﻿using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
+using EventManager.Domain.Models;
 
 namespace EventManager.Application.Services;
 
@@ -10,6 +11,11 @@ public class CategoryService : ICategoryService
     public CategoryService(ICategoryRepository repository)
     {
         _repository = repository;
+    }
+
+    public async Task<IEnumerable<Category>> GetCategoriesAsync()
+    {
+        return await _repository.GetCategoriesAsync();
     }
 
     public async Task DeleteCategoryAsync(Guid categoryId)

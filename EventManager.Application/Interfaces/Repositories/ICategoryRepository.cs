@@ -1,8 +1,11 @@
-﻿namespace EventManager.Application.Interfaces.Repositories;
+﻿using EventManager.Domain.Models;
+
+namespace EventManager.Application.Interfaces.Repositories;
 
 public interface ICategoryRepository
 {
-    public Task DeleteCategoryAsync(Guid categoryId);
-    public Task<Guid> AddCategoryAsync(string name);
-    public Task RenameCategoryAsync(Guid categoryId, string newName);
+    Task DeleteCategoryAsync(Guid categoryId);
+    Task<Guid> AddCategoryAsync(string name);
+    Task RenameCategoryAsync(Guid categoryId, string newName);
+    Task<IEnumerable<Category>> GetCategoriesAsync();
 }
