@@ -7,19 +7,14 @@ using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Services;
 using EventManager.Application.Validators;
-using EventManager.Domain.Constants;
-using EventManager.Domain.Models;
 using EventManager.Domain.Options;
 using EventManager.Infrastructure.Processors;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
 using EventManager.Persistence.UnitOfWork;
 using FluentValidation;
-using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
-using Products.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

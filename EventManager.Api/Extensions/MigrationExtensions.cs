@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Products.Api.Database;
+﻿using EventManager.Persistence;
+using Microsoft.EntityFrameworkCore;
 
-namespace Products.Api.Extensions;
+namespace EventManager.Api.Extensions;
 
 public static class MigrationExtensions
 {

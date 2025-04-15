@@ -1,7 +1,4 @@
-﻿
-using EventManager.Application.Interfaces.Repositories;
-using EventManager.Application.Services;
-using global::EventManager.Application.Interfaces.Services;
+﻿using EventManager.Application.Interfaces.Services;
 using global::EventManager.Domain.Constants;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -19,9 +16,10 @@ public static class ImagesEndpoints
             .WithOpenApi();
 
         imageGroup.MapGet("/{filename}", GetEventImage)
-            .Produces<FileStreamHttpResult>()
+            .Produces<FileContentResult>()
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status500InternalServerError)
             .WithOpenApi(operation => new OpenApiOperation(operation)
             {
                 Summary = "Get event image by filename"
@@ -30,8 +28,8 @@ public static class ImagesEndpoints
         imageGroup.MapPost("/", UploadEventImage)
              .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
              .Accepts<IFormFile>("multipart/form-data")
-             .Produces<string>()
-             .WithMetadata(new DisableAntiforgeryAttribute()) 
+             .Produces<string>(StatusCodes.Status201Created)
+             .WithMetadata(new DisableAntiforgeryAttribute())
              .WithOpenApi(operation => new OpenApiOperation(operation)
              {
                  Summary = "Upload new image for event"
@@ -56,27 +54,17 @@ public static class ImagesEndpoints
     {
         try
         {
-            // Проверка валидности имени файла
-            if (string.IsNullOrWhiteSpace(filename))
-                throw new ArgumentException("Invalid filename");
-
-            // Защита от path traversal attacks
-            if (filename.Contains("..") || Path.IsPathRooted(filename))
-                return Results.BadRequest("Invalid filename format");
-
-            // Получение полного пути к файлу
-            var filePath = Path.Combine(
-                Environment.GetEnvironmentVariable("FILE_STORAGE_PATH") ?? "/data/uploads",
-                filename);
-
-            // Проверка существования файла
-            if (!System.IO.File.Exists(filePath))
-                return Results.NotFound("Image not found");
-
-            // Определение MIME-типа
+            var imageBytes = await imageService.GetImageAsync(eventId, filename);
             var mimeType = GetMimeType(filename);
-
-            return Results.File(filePath, mimeType);
+            return Results.File(imageBytes, mimeType);
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+        catch (FileNotFoundException)
+        {
+            return Results.NotFound("Image not found");
         }
         catch (Exception ex)
         {
@@ -96,14 +84,23 @@ public static class ImagesEndpoints
         };
     }
 
-
     private static async Task<IResult> UploadEventImage(
         Guid eventId,
         [FromForm] IFormFile image,
         [FromServices] IImageService imageService)
     {
-        var imageUrl = await imageService.UploadImageAsync(eventId, image);
-        return Results.Created($"/api/events/{eventId}/images/{Path.GetFileName(imageUrl)}", imageUrl);
+        try
+        {
+            var imageUrl = await imageService.UploadImageAsync(eventId, image);
+            return Results.Created(
+                $"/api/events/{eventId}/images/{Path.GetFileName(imageUrl)}",
+                imageUrl);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Error uploading image",
+                statusCode: StatusCodes.Status500InternalServerError);
+        }
     }
 
     private static async Task<IResult> DeleteEventImage(
@@ -111,10 +108,25 @@ public static class ImagesEndpoints
         string filename,
         [FromServices] IImageService imageService)
     {
-        // Приведение переданного имени файла к формату, соответствующему сохранённому URL.
-        string imageUrl = filename.StartsWith("/uploads/") ? filename : $"/uploads/{filename}";
-        await imageService.DeleteImageAsync(eventId, imageUrl);
-        return Results.NoContent();
+        try
+        {
+            // Приведение имени файла к корректному формату
+            var normalizedFilename = filename.StartsWith("/uploads/")
+                ? filename
+                : $"/uploads/{filename}";
+
+            await imageService.DeleteImageAsync(eventId, normalizedFilename);
+            return Results.NoContent();
+        }
+        catch (FileNotFoundException)
+        {
+            return Results.NotFound("Image not found");
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Error deleting image",
+                statusCode: StatusCodes.Status500InternalServerError);
+        }
     }
 }
 
