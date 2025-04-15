@@ -71,6 +71,8 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
+
+
 //app.UseStaticFiles(new StaticFileOptions
 //{
 //    FileProvider = new PhysicalFileProvider("/data/uploads"),
@@ -85,6 +87,12 @@ if (app.Environment.IsDevelopment())
     {
         opt.SwaggerEndpoint("/swagger/v1/swagger.json", "EventManager");
     });
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
 }
 
 
