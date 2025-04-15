@@ -15,7 +15,6 @@ public class ImageService:IImageService
     public ImageService(
         IImageRepository imageRepository,
         IFileStorage fileStorage,
-        IUserRepository userRepository,
         IUnitOfWork unitOfWork)
     {
         _fileStorage = fileStorage;

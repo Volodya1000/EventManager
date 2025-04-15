@@ -15,6 +15,7 @@ using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
 using EventManager.Persistence.UnitOfWork;
 using FluentValidation;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -67,17 +68,19 @@ builder.Services.AddAuthorization();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 //добавляет в контейнер DI сервис IHttpContextAccessor, для доступ к HttpContext
-builder.Services.AddHttpContextAccessor(); 
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddAntiforgery();
 
 var app = builder.Build();
 
 
 
-//app.UseStaticFiles(new StaticFileOptions
-//{
-//    FileProvider = new PhysicalFileProvider("/data/uploads"),
-//    RequestPath = "/uploads"
-//});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider("/data/uploads"),
+    RequestPath = "/uploads"
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -103,8 +106,14 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseAntiforgery();
+
 app.AddMappedEndpoints();
 
 app.Run();
 
 
+public class DisableAntiforgeryAttribute : Attribute, IAntiforgeryMetadata
+{
+    public bool RequiresValidation => false;
+}

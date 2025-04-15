@@ -8,14 +8,17 @@ services:
     ports:
       - "5000:5000"
       - "5001:5001"
+    volumes:
+      - ./data/uploads:/data/uploads
   eventmanager.database:
     image: postgres:latest
     container_name: eventmanager.database
     environment:
-        - POSTGRES_DB=EventManagerDataBase
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=EventManagerDataBase
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     volumes:
-        - ./.containers/EventManagerDataBase:/var/lib/postgresql/data
+      - ./.containers/EventManagerDataBase:/var/lib/postgresql/data
     ports:
-        - 5432:5432
+      - "5432:5432"
+

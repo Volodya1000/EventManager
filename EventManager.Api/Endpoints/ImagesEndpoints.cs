@@ -27,13 +27,14 @@ public static class ImagesEndpoints
             });
 
         imageGroup.MapPost("/", UploadEventImage)
-            .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
-            .Accepts<IFormFile>("multipart/form-data")
-            .Produces<string>()
-            .WithOpenApi(operation => new OpenApiOperation(operation)
-            {
-                Summary = "Upload new image for event"
-            });
+             .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
+             .Accepts<IFormFile>("multipart/form-data")
+             .Produces<string>()
+             .WithMetadata(new DisableAntiforgeryAttribute()) 
+             .WithOpenApi(operation => new OpenApiOperation(operation)
+             {
+                 Summary = "Upload new image for event"
+             });
 
         imageGroup.MapDelete("/{filename}", DeleteEventImage)
             .RequireAuthorization(policy => policy.RequireRole(IdentityRoleConstants.Admin))
@@ -97,7 +98,7 @@ public static class ImagesEndpoints
 
     private static async Task<IResult> UploadEventImage(
         Guid eventId,
-        IFormFile image,
+        [FromForm] IFormFile image,
         [FromServices] IImageService imageService)
     {
         var imageUrl = await imageService.UploadImageAsync(eventId, image);
@@ -109,7 +110,9 @@ public static class ImagesEndpoints
         string filename,
         [FromServices] IImageService imageService)
     {
-        await imageService.DeleteImageAsync(eventId, filename);
+        // Приведение переданного имени файла к формату, соответствующему сохранённому URL.
+        string imageUrl = filename.StartsWith("/uploads/") ? filename : $"/uploads/{filename}";
+        await imageService.DeleteImageAsync(eventId, imageUrl);
         return Results.NoContent();
     }
 }

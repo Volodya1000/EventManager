@@ -22,14 +22,20 @@ public class LocalFileStorage : IFileStorage
         if (!_allowedExtensions.Contains(extension))
             throw new InvalidOperationException($"Invalid file type: {extension}");
 
-        var fileName = $"{Guid.NewGuid()}{extension}";
-        var filePath = Path.Combine(_uploadPath, fileName);
+        // Очищаем имя файла от небезопасных символов и удаляем расширение
+        var originalName = Path.GetFileNameWithoutExtension(file.FileName);
+        var sanitizedFileName = string.Concat(originalName
+            .Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_'))
+            .Trim();
+
+        var uniqueName = $"{Guid.NewGuid()}_{sanitizedFileName}{extension}";
+        var filePath = Path.Combine(_uploadPath, uniqueName);
 
         try
         {
             using var stream = new FileStream(filePath, FileMode.Create);
             await file.CopyToAsync(stream);
-            return $"/uploads/{fileName}"; // Возвращаем полный URL
+            return $"/uploads/{uniqueName}";
         }
         catch (Exception ex)
         {
