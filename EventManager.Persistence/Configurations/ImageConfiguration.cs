@@ -11,6 +11,10 @@ public class ImageConfiguration : IEntityTypeConfiguration<ImageEntity>
         builder.ToTable("Images");
 
         builder.HasKey(i => i.Id);
-        builder.Property(i => i.Id);
+
+        builder.Property(i => i.Id)
+       .ValueGeneratedOnAdd();
+
+        builder.Property(i => i.Url);
     }
 }

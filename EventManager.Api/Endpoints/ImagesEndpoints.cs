@@ -3,6 +3,7 @@ using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Services;
 using global::EventManager.Application.Interfaces.Services;
 using global::EventManager.Domain.Constants;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
@@ -115,4 +116,9 @@ public static class ImagesEndpoints
         await imageService.DeleteImageAsync(eventId, imageUrl);
         return Results.NoContent();
     }
+}
+
+public class DisableAntiforgeryAttribute : Attribute, IAntiforgeryMetadata
+{
+    public bool RequiresValidation => false;
 }

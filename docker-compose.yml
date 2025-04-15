@@ -10,6 +10,8 @@ services:
       - "5001:5001"
     volumes:
       - ./data/uploads:/data/uploads
+    environment:
+      - FILE_STORAGE_PATH=/data/uploads
   eventmanager.database:
     image: postgres:latest
     container_name: eventmanager.database

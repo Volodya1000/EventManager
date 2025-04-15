@@ -76,11 +76,15 @@ var app = builder.Build();
 
 
 
+var uploadPath = Environment.GetEnvironmentVariable("FILE_STORAGE_PATH") ?? "/data/uploads";
+
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider("/data/uploads"),
+    FileProvider = new PhysicalFileProvider(uploadPath),
     RequestPath = "/uploads"
 });
+
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -91,11 +95,11 @@ if (app.Environment.IsDevelopment())
         opt.SwaggerEndpoint("/swagger/v1/swagger.json", "EventManager");
     });
 
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.Migrate();
-    }
+    //using (var scope = app.Services.CreateScope())
+    //{
+    //    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    //    dbContext.Database.Migrate();
+    //}
 }
 
 
@@ -113,7 +117,3 @@ app.AddMappedEndpoints();
 app.Run();
 
 
-public class DisableAntiforgeryAttribute : Attribute, IAntiforgeryMetadata
-{
-    public bool RequiresValidation => false;
-}

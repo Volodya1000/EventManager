@@ -20,7 +20,7 @@ public class ImageRepository:IImageRepository
 
         if (entity == null)
             throw new InvalidOperationException("Event not found");
-        var newImage = new ImageEntity { Id = Guid.NewGuid(), Url = imageUrl };
+        var newImage = new ImageEntity { Url = imageUrl };
         entity.Images.Add(newImage);
         await _context.SaveChangesAsync();
     }

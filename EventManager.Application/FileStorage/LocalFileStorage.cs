@@ -13,7 +13,6 @@ public class LocalFileStorage : IFileStorage
     {
         // Путь берется из переменной окружения или использует дефолт
         _uploadPath = Environment.GetEnvironmentVariable("FILE_STORAGE_PATH") ?? "/data/uploads";
-        Directory.CreateDirectory(_uploadPath);
     }
 
     public async Task<string> SaveFile(IFormFile file)
