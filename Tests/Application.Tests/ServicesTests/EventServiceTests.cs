@@ -35,9 +35,10 @@ public class EventServiceTests : IDisposable
         _eventService = new EventService(
             _eventRepository,
             _mapper,
-            new Mock<IFileStorage>().Object,
             _userRepositoryMock.Object,
-            new CreateEventRequestValidator());
+            new CreateEventRequestValidator(),
+            new UpdateEventRequestValidator(),
+            new EventFilterRequestValidator());
     }
 
     public void Dispose()
@@ -143,7 +144,7 @@ public class EventServiceTests : IDisposable
         updatedEvent.MaxParticipants.Should().Be(updateRequest.MaxParticipants);
     }
 
-    [Fact(DisplayName = "UpdateAsync: Происходит exception при пустом описании в UpdateEventRequest")]
+    [Fact(DisplayName = "UpdateAsync: Происходит ValidationException exception при пустом описании в UpdateEventRequest")]
     public async Task UpdateAsync_WithEmptyDescription_ThrowsException()
     {
         // Arrange
@@ -157,7 +158,7 @@ public class EventServiceTests : IDisposable
 
         // Act & Assert
         await _eventService.Invoking(s => s.UpdateAsync(eventId, updateRequest))
-            .Should().ThrowAsync<ArgumentException>();
+            .Should().ThrowAsync<FluentValidation.ValidationException>();
     }
 
     [Fact(DisplayName = "GetFilteredAsync: Корректно возвращает отфильтрованные результаты")]
