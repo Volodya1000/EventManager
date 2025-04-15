@@ -52,24 +52,24 @@ public static class ImagesEndpoints
         string filename,
         [FromServices] IImageService imageService)
     {
-        //try
-        //{
+        try
+        {
             var imageBytes = await imageService.GetImageAsync(eventId, filename);
             var mimeType = GetMimeType(filename);
             return Results.File(imageBytes, mimeType);
-        //}
-        //catch (ArgumentException ex)
-        //{
-        //    return Results.BadRequest(ex.Message);
-        //}
-        //catch (FileNotFoundException)
-        //{
-        //    return Results.NotFound("Image not found");
-        //}
-        //catch (Exception ex)
-        //{
-        //    return Results.StatusCode(StatusCodes.Status500InternalServerError);
-        //}
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+        catch (FileNotFoundException)
+        {
+            return Results.NotFound("Image not found");
+        }
+        catch (Exception ex)
+        {
+            return Results.StatusCode(StatusCodes.Status500InternalServerError);
+        }
     }
 
     private static string GetMimeType(string filename)
