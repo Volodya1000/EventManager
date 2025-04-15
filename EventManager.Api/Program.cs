@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Products.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,11 +41,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionString"));
 });
 
+builder.Services.AddStackExchangeRedisCache(options =>
+    options.Configuration = builder.Configuration.GetConnectionString("Cache"));
+
 builder.Services.AddAutoMapper(
     typeof(EventManager.Persistence.Mapping.EventProfile).Assembly
 );
 
 //Регистрация в DI контейнер
+//Регистрация сервисов
 builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
@@ -54,6 +59,7 @@ builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 
+//Регистрация репозиториев
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -94,12 +100,7 @@ if (app.Environment.IsDevelopment())
     {
         opt.SwaggerEndpoint("/swagger/v1/swagger.json", "EventManager");
     });
-
-    //using (var scope = app.Services.CreateScope())
-    //{
-    //    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //    dbContext.Database.Migrate();
-    //}
+    app.ApplyMigrations();
 }
 
 
