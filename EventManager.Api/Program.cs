@@ -78,7 +78,8 @@ var app = builder.Build();
 
 
 var uploadPath = Environment.GetEnvironmentVariable("FILE_STORAGE_PATH") ?? "/data/uploads";
-
+if (!Directory.Exists(uploadPath))
+    Directory.CreateDirectory(uploadPath);
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(uploadPath),

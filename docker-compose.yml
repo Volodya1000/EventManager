@@ -18,6 +18,9 @@ services:
       - FILE_STORAGE_PATH=/data/uploads
     networks:
       - eventmanager-network
+    depends_on:
+      eventmanager.database:
+        condition: service_healthy
   eventmanager.database:
     image: postgres:latest
     container_name: eventmanager.database
@@ -31,6 +34,11 @@ services:
       - "5432:5432"
     networks:
      - eventmanager-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   eventmanager.cache:
     container_name: eventmanager.redis

@@ -31,7 +31,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-RUN mkdir -p /data/uploads
-
-
 ENTRYPOINT ["dotnet", "EventManager.Api.dll"]
