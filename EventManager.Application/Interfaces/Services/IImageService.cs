@@ -8,3 +8,4 @@ public interface IImageService
     Task DeleteImageAsync(Guid id, string url);
     Task<byte[]> GetImageAsync(Guid eventId, string filename);
 }
+

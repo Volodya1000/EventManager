@@ -3,34 +3,31 @@ using EventManager.Application.Interfaces.Repositories;
 using EventManager.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using EventManager.Application.Interfaces.Services;
-using Microsoft.Extensions.Caching.Distributed;
-using EventManager.Application.Options;
 
 namespace EventManager.Application.Services;
 
-public class ImageService:IImageService
+public class ImageService : IImageService
 {
     private readonly IImageRepository _imageRepository;
     private readonly IFileStorage _fileStorage;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IDistributedCache _cache;
+    private readonly ICacheService _cacheService;
 
     public ImageService(
         IImageRepository imageRepository,
         IFileStorage fileStorage,
         IUnitOfWork unitOfWork,
-        IDistributedCache cache)
+        ICacheService cacheService)
     {
+        _imageRepository = imageRepository;
         _fileStorage = fileStorage;
         _unitOfWork = unitOfWork;
-        _imageRepository = imageRepository;
-        _cache = cache;
+        _cacheService = cacheService;
     }
 
     public async Task<string> UploadImageAsync(Guid eventId, IFormFile image)
     {
         string imageUrl = await _fileStorage.SaveFile(image);
-
         await _imageRepository.AddImageToEventAsync(eventId, imageUrl);
         return imageUrl;
     }
@@ -44,8 +41,7 @@ public class ImageService:IImageService
             await _fileStorage.DeleteFile(url);
 
             var filename = Path.GetFileName(url);
-            var cacheKey = $"event_image:{eventId}:{filename}";
-            await _cache.RemoveAsync(cacheKey);
+            await _cacheService.RemoveEventImageAsync(eventId, filename);
 
             await _unitOfWork.CommitAsync();
         }
@@ -58,7 +54,6 @@ public class ImageService:IImageService
 
     public async Task<byte[]> GetImageAsync(Guid eventId, string filename)
     {
-        // Валидация имени файла
         if (string.IsNullOrWhiteSpace(filename) ||
             filename.Contains("..") ||
             Path.IsPathRooted(filename))
@@ -66,15 +61,12 @@ public class ImageService:IImageService
             throw new ArgumentException("Invalid filename");
         }
 
-        var cacheKey = $"event_image:{eventId}:{filename}";
-        var cachedImage = await _cache.GetAsync(cacheKey);
-
+        var cachedImage = await _cacheService.GetEventImageAsync(eventId, filename);
         if (cachedImage != null)
         {
             return cachedImage;
         }
 
-        // Получение файла из хранилища
         var filePath = Path.Combine(
             Environment.GetEnvironmentVariable("FILE_STORAGE_PATH") ?? "/data/uploads",
             filename);
@@ -85,9 +77,7 @@ public class ImageService:IImageService
         }
 
         var imageBytes = await File.ReadAllBytesAsync(filePath);
-
-        // Сохраняем в кэш
-        await _cache.SetAsync(cacheKey, imageBytes, CacheOptions.DefaultExpiration);
+        await _cacheService.SetEventImageAsync(eventId, filename, imageBytes);
 
         return imageBytes;
     }
