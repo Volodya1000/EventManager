@@ -1,5 +1,4 @@
-﻿using EventManager.Application.FileStorage;
-using EventManager.Application.Interfaces.Repositories;
+﻿using EventManager.Application.Interfaces.Repositories;
 using EventManager.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using EventManager.Application.Interfaces.Services;
@@ -9,13 +8,13 @@ namespace EventManager.Application.Services;
 public class ImageService : IImageService
 {
     private readonly IImageRepository _imageRepository;
-    private readonly IFileStorage _fileStorage;
+    private readonly IFileService _fileStorage;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICacheService _cacheService;
 
     public ImageService(
         IImageRepository imageRepository,
-        IFileStorage fileStorage,
+        IFileService fileStorage,
         IUnitOfWork unitOfWork,
         ICacheService cacheService)
     {

@@ -1,6 +1,5 @@
 ﻿using Application.Tests.Factories;
 using AutoMapper;
-using EventManager.Application.FileStorage;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Requests;
 using EventManager.Application.Services;

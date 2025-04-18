@@ -1,6 +1,5 @@
 using EventManager.Api.Extensions;
 using EventManager.API.Handlers;
-using EventManager.Application.FileStorage;
 using EventManager.Domain.Interfaces;
 using EventManager.Application.Interfaces.AuthTokenProcessor;
 using EventManager.Application.Interfaces.Repositories;
@@ -49,22 +48,25 @@ builder.Services.AddAutoMapper(
 );
 
 //Регистрация в DI контейнер
-//Регистрация сервисов
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
+
+//Регистрация репозиториев
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
+
+
+
+
+//Регистрация сервисов
 builder.Services.AddScoped<ICacheService, CacheService>();
-
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
-
-//Регистрация репозиториев
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateEventRequestValidator>();
 

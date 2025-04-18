@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace EventManager.Application.FileStorage;
+namespace EventManager.Application.Interfaces.Services;
 
-public interface IFileStorage
+public interface IFileService
 {
     Task<string> SaveFile(IFormFile file);
     Task DeleteFile(string url);

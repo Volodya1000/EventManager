@@ -1,15 +1,15 @@
 ﻿using EventManager.Application.Exceptions;
+using EventManager.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
-using System.Linq;
 
-namespace EventManager.Application.FileStorage;
+namespace EventManager.Infrastructure.Services;
 
-public class LocalFileStorage : IFileStorage
+public class FileService : IFileService
 {
     private readonly string _uploadPath;
     private static readonly string[] _allowedExtensions = { ".jpg", ".png", ".webp" };
 
-    public LocalFileStorage()
+    public FileService()
     {
         // Путь берется из переменной окружения или использует дефолт
         _uploadPath = Environment.GetEnvironmentVariable("FILE_STORAGE_PATH") ?? "/data/uploads";
