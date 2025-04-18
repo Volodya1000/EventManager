@@ -1,7 +1,7 @@
 ﻿using EventManager.Application.Interfaces.AuthTokenProcessor;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Domain.Models;
-using EventManager.Domain.Exceptions;
+using EventManager.Application.Exceptions;
 using EventManager.Application.Requests;
 using Microsoft.AspNetCore.Identity;
 using EventManager.Application.Interfaces.Repositories;

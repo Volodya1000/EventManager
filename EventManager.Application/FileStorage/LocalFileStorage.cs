@@ -1,4 +1,4 @@
-﻿using EventManager.Domain.Exceptions;
+﻿using EventManager.Application.Exceptions;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
 

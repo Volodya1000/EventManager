@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using EventManager.Domain.Exceptions;
+using EventManager.Application.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using FluentValidation;
 

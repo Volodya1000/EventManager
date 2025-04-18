@@ -1,3 +1,3 @@
-﻿namespace EventManager.Domain.Exceptions;
+﻿namespace EventManager.Application.Exceptions;
 
 public class LoginFailedException(string email) : Exception($"Invalid email: {email} or password.");
