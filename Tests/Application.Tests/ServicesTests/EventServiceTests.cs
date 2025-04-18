@@ -17,6 +17,7 @@ public class EventServiceTests : IDisposable
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly EventRepository _eventRepository;
+    private readonly CategoryRepository _categoryRepository;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly EventService _eventService;
 
@@ -27,12 +28,15 @@ public class EventServiceTests : IDisposable
         _mapper = EventTestFactory.CreateApplicationMapper();
 
         var persistenceMapper = EventTestFactory.CreatePersistenceMapper();
+
         _eventRepository = new EventRepository(_context, persistenceMapper);
+        _categoryRepository = new CategoryRepository(_context, persistenceMapper);
 
         _userRepositoryMock = new Mock<IUserRepository>();
 
         _eventService = new EventService(
             _eventRepository,
+            _categoryRepository,
             _mapper,
             _userRepositoryMock.Object,
             new CreateEventRequestValidator(),

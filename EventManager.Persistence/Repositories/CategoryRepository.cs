@@ -75,4 +75,10 @@ public class CategoryRepository: ICategoryRepository
         category.Name = newName;
         await _context.SaveChangesAsync();
     }
+
+    public async Task<bool> ExistsAsync(string categoryName)
+    {
+        return await _context.Categories.AsNoTracking()
+            .AnyAsync(c=>c.Name == categoryName);
+    }
 }

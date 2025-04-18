@@ -11,6 +11,7 @@ namespace EventManager.Application.Services;
 public class EventService : IEventService
 {
     private readonly IEventRepository _eventRepository;
+    private readonly ICategoryRepository _categoryRepository;
     private readonly IMapper _mapper;
     private readonly IUserRepository _userRepository;
     private readonly IValidator<CreateEventRequest> _createValidator;
@@ -19,6 +20,7 @@ public class EventService : IEventService
 
     public EventService(
         IEventRepository eventRepository,
+        ICategoryRepository categoryRepository,
         IMapper mapper,
         IUserRepository userRepository,
         IValidator<CreateEventRequest> createValidator,
@@ -26,6 +28,7 @@ public class EventService : IEventService
         IValidator<EventFilterRequest> filterValidator)
     {
         _eventRepository = eventRepository;
+        _categoryRepository = categoryRepository;
         _mapper = mapper;
         _userRepository = userRepository;
         _createValidator = createValidator;
@@ -47,6 +50,10 @@ public class EventService : IEventService
         var exists = await _eventRepository.GetByNameAsync(request.Name);
         if (exists != null)
             throw new InvalidOperationException("Event with this name already exists");
+
+        var categoryExists = await _categoryRepository.ExistsAsync(request.Category);
+        if (!categoryExists)
+            throw new InvalidOperationException("Category not found");
 
         var newEvent = Event.Create(
             Guid.NewGuid(),
@@ -79,7 +86,10 @@ public class EventService : IEventService
     {
         _updateValidator.ValidateAndThrow(request);
 
-        Event eventById = await _eventRepository.GetByIdAsync(eventId);
+        var eventById = await _eventRepository.GetByIdAsync(eventId);
+        if (eventById == null)
+            throw new InvalidOperationException("Event not found");
+
 
         eventById.UpdateDescription(request.Description);
 
