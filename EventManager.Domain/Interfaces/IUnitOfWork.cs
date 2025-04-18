@@ -1,4 +1,4 @@
-﻿namespace EventManager.Application.Interfaces;
+﻿namespace EventManager.Domain.Interfaces;
 
 public interface IUnitOfWork
 {

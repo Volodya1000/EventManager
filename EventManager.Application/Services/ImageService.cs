@@ -1,6 +1,6 @@
 ﻿using EventManager.Application.FileStorage;
 using EventManager.Application.Interfaces.Repositories;
-using EventManager.Application.Interfaces;
+using EventManager.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using EventManager.Application.Interfaces.Services;
 using Microsoft.Extensions.Caching.Distributed;

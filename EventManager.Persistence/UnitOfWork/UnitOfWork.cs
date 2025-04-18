@@ -1,4 +1,4 @@
-﻿using EventManager.Application.Interfaces;
+﻿using EventManager.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EventManager.Persistence.UnitOfWork;

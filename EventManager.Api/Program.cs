@@ -1,7 +1,7 @@
 using EventManager.Api.Extensions;
 using EventManager.API.Handlers;
 using EventManager.Application.FileStorage;
-using EventManager.Application.Interfaces;
+using EventManager.Domain.Interfaces;
 using EventManager.Application.Interfaces.AuthTokenProcessor;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
