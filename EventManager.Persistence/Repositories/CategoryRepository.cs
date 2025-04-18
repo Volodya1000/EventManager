@@ -23,56 +23,36 @@ public class CategoryRepository: ICategoryRepository
         return _mapper.Map<List<Category>>(categories);
     }
 
-    public async Task<Guid> AddCategoryAsync(string name)
+    public async Task<Guid> AddCategoryAsync(Category category)
     {
-        if (await _context.Categories.AnyAsync(c => c.Name == name))
-            throw new InvalidOperationException("Category with this name already exists");
+        var entity = _mapper.Map<CategoryEntity>(category);
 
-        var newCategory = new CategoryEntity
-        {
-            Id = Guid.NewGuid(),
-            Name = name
-        };
-
-        await _context.Categories.AddAsync(newCategory);
+        await _context.Categories.AddAsync(entity);
         await _context.SaveChangesAsync();
 
-        return newCategory.Id;
+        return entity.Id;
     }
 
-    public async Task DeleteCategoryAsync(Guid categoryId)
+    public async Task DeleteCategoryAsync(Category category)
     {
-        var category = await _context.Categories.FindAsync(categoryId);
+        var entity = await _context.Categories.FindAsync(category.Id);
+        if (entity == null)
+            return;
 
-        if (category == null)
-        {
-            throw new InvalidOperationException("Category not found");
-        }
-
-        // Проверка, что категория не используется в событиях
-        if (await _context.Events.AnyAsync(e => e.CategoryId == categoryId))
-        {
-            throw new InvalidOperationException("Cannot delete category because it is used in events");
-        }
-
-        _context.Categories.Remove(category);
+        _context.Categories.Remove(entity);
         await _context.SaveChangesAsync();
     }
 
-    public async Task RenameCategoryAsync(Guid categoryId, string newName)
+    public async Task UpdateCategoryAsync(Category category)
     {
-        var category = await _context.Categories.FindAsync(categoryId);
+        var existingEntity = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == category.Id);
+        if (existingEntity == null)
+            return;
 
-        if (category == null)
-        {
-            throw new InvalidOperationException("Category not found");
-        }
+        _mapper.Map(category, existingEntity); 
+        _context.Entry(existingEntity).State = EntityState.Modified;
 
-        // Проверка на уникальность нового имени категории
-        if (await _context.Categories.AnyAsync(c => c.Name == newName && c.Id != categoryId))
-            throw new InvalidOperationException("Category with this name already exists");
-
-        category.Name = newName;
         await _context.SaveChangesAsync();
     }
 
@@ -80,5 +60,11 @@ public class CategoryRepository: ICategoryRepository
     {
         return await _context.Categories.AsNoTracking()
             .AnyAsync(c=>c.Name == categoryName);
+    }
+
+    public async Task<Category?> GetByIdAsync(Guid id)
+    {
+        var entity = await _context.Categories.FindAsync(id);
+        return _mapper.Map<Category?>(entity);
     }
 }

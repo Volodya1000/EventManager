@@ -3,7 +3,7 @@
 public class Category
 {
     public Guid Id { get; init; }
-    public string Name { get; init; }
+    public string Name { get; private set; }
 
     public static Category Create(Guid id, string name)
     {
@@ -12,5 +12,10 @@ public class Category
             Id = id,
             Name = name
         };
+    }
+
+    public void Rename(string newName)
+    {
+        Name= newName;
     }
 }

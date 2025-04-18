@@ -6,6 +6,7 @@ using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Dtos;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.Extensions.Logging;
 
 namespace EventManager.Persistence.Repositories;
 
@@ -116,7 +117,9 @@ public class EventRepository : IEventRepository
     public async Task DeleteAsync(Guid id)
     {
         var entity = await _context.Events.FindAsync(id);
-       
+        if (entity == null)
+            return;
+
         _context.Events.Remove(entity);
         var result = await _context.SaveChangesAsync();
     }
@@ -174,6 +177,12 @@ public class EventRepository : IEventRepository
             .ToListAsync();
 
         return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
+    }
+
+    public async Task<bool> AnyEventWithCategoryAsync(Guid categoryId)
+    {
+        return await _context.Events.
+            AsNoTracking().AnyAsync(e => e.Category.Id== categoryId);
     }
 
 

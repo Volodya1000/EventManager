@@ -89,7 +89,7 @@ public class EventService : IEventService
 
         var eventById = await _eventRepository.GetByIdAsync(eventId);
         if (eventById == null)
-            throw new InvalidOperationException("Event not found");
+            throw new InvalidOperationException($"Event with id: {eventId} not found");
 
 
         eventById.UpdateDescription(request.Description);
