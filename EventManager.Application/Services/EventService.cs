@@ -47,6 +47,7 @@ public class EventService : IEventService
     {
         _createValidator.ValidateAndThrow(request);
 
+        // Проверка уникальности имени события
         var exists = await _eventRepository.GetByNameAsync(request.Name);
         if (exists != null)
             throw new InvalidOperationException("Event with this name already exists");
