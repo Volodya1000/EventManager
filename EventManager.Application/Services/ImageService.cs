@@ -39,22 +39,24 @@ public class ImageService : IImageService
         return imageUrl;
     }
 
-    public async Task DeleteImageAsync(Guid eventId, string url)
+    public async Task DeleteImageAsync(Guid eventId, string filename)
     {
         var eventById = await _eventRepository.GetByIdAsync(eventId)
             ?? throw new EventNotFoundException(eventId);
 
+        var normalizedUrl = NormalizeUrl(filename);
+
         await _unitOfWork.BeginTransactionAsync();
         try
         {
-            if (! await _imageRepository.ExistsAsync(eventId, url))
+            if (! await _imageRepository.ExistsAsync(eventId, normalizedUrl))
                 throw new ArgumentException("Image not found");
 
-            await _imageRepository.DeleteImageAsyncWithoutSaveChanges(eventId, url);
-            await _fileStorage.DeleteFile(url);
+            await _imageRepository.DeleteImageAsyncWithoutSaveChanges(eventId, normalizedUrl);
+            await _fileStorage.DeleteFile(normalizedUrl);
 
-            var filename = Path.GetFileName(url);
-            await _cacheService.RemoveEventImageAsync(eventId, filename);
+            var fname = Path.GetFileName(normalizedUrl);
+            await _cacheService.RemoveEventImageAsync(eventId, fname);
 
             await _unitOfWork.CommitAsync();
         }
@@ -65,14 +67,13 @@ public class ImageService : IImageService
         }
     }
 
-    public async Task<byte[]> GetImageAsync(Guid eventId, string filename)
+    public async Task<(byte[] Bytes, string MimeType)> GetImageAsync(Guid eventId, string filename)
     {
-        if (string.IsNullOrWhiteSpace(filename) || filename.Contains("..") || Path.IsPathRooted(filename))
-            throw new ArgumentException("Invalid filename");
+        ValidateFilename(filename);
 
         var cachedImage = await _cacheService.GetEventImageAsync(eventId, filename);
         if (cachedImage != null)
-            return cachedImage;
+            return (cachedImage, GetMimeType(filename));
 
         var filePath = Path.Combine(
             Environment.GetEnvironmentVariable("FILE_STORAGE_PATH") ?? "/data/uploads",
@@ -84,6 +85,39 @@ public class ImageService : IImageService
         var imageBytes = await File.ReadAllBytesAsync(filePath);
         await _cacheService.SetEventImageAsync(eventId, filename, imageBytes);
 
-        return imageBytes;
+        return (imageBytes, GetMimeType(filename));
     }
+
+    #region Helpers
+
+    private static void ValidateFilename(string filename)
+    {
+        if (string.IsNullOrWhiteSpace(filename) ||
+            filename.Contains("..") ||
+            Path.IsPathRooted(filename))
+        {
+            throw new ArgumentException("Invalid file name ");
+        }
+    }
+
+    private string NormalizeUrl(string filename)
+    {
+        if (filename.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
+            return filename;
+        return $"/uploads/{filename}";
+    }
+
+    private static string GetMimeType(string filename)
+    {
+        var ext = Path.GetExtension(filename).ToLowerInvariant();
+        return ext switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream",
+        };
+    }
+
+    #endregion
 }
