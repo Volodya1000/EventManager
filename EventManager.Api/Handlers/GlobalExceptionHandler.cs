@@ -42,6 +42,8 @@ public class GlobalExceptionHandler : IExceptionHandler
             UserAlreadyAdminException => (HttpStatusCode.Conflict, exception.Message),
             PromotionFailedException => (HttpStatusCode.BadRequest, exception.Message),
             FileStorageException => (HttpStatusCode.InternalServerError, exception.Message),
+            OperationCanceledException or TaskCanceledException =>
+            (HttpStatusCode.BadRequest, "Request was canceled."),
             _ => (HttpStatusCode.InternalServerError, $"An unexpected error occurred: {exception.Message}")
         };
     }
