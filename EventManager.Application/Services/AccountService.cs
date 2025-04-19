@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Domain.Constants;
 using Microsoft.Extensions.Logging;
-using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -144,7 +143,13 @@ public class AccountService : IAccountService
         _logger.LogInformation("User with email:{Email} promoted to Admin role", email);
     }
 
-    public Guid? GetUserIdFromToken()
+    public Guid GetCurrentUserId()
+    {
+        var userId = GetUserIdFromToken();
+        return userId ?? throw new UnauthorizedException("User not authenticated");
+    }
+
+    private Guid? GetUserIdFromToken()
     {
         var userIdClaim = _httpContextAccessor.HttpContext?
             .User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;

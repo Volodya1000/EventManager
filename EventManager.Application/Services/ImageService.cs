@@ -2,6 +2,7 @@
 using EventManager.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using EventManager.Application.Interfaces.Services;
+using EventManager.Application.Exceptions;
 
 namespace EventManager.Application.Services;
 
@@ -30,9 +31,8 @@ public class ImageService : IImageService
 
     public async Task<string> UploadImageAsync(Guid eventId, IFormFile image)
     {
-        var eventById = await _eventRepository.GetByIdAsync(eventId);
-        if (eventById == null)
-            throw new InvalidOperationException($"Event with id: {eventId} not found");
+        var eventById = await _eventRepository.GetByIdAsync(eventId)
+            ?? throw new EventNotFoundException(eventId);
 
         string imageUrl = await _fileStorage.SaveFile(image);
         await _imageRepository.AddImageToEventAsync(eventId, imageUrl);
@@ -41,9 +41,8 @@ public class ImageService : IImageService
 
     public async Task DeleteImageAsync(Guid eventId, string url)
     {
-        var eventById = await _eventRepository.GetByIdAsync(eventId);
-        if (eventById == null)
-            throw new InvalidOperationException($"Event with id: {eventId} not found");
+        var eventById = await _eventRepository.GetByIdAsync(eventId)
+            ?? throw new EventNotFoundException(eventId);
 
         await _unitOfWork.BeginTransactionAsync();
         try

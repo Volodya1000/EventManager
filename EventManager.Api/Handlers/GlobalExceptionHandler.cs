@@ -32,11 +32,13 @@ public class GlobalExceptionHandler : IExceptionHandler
         {
             ValidationException validationException =>
                 (HttpStatusCode.BadRequest, GetValidationErrorMessage(validationException)),
+            UnauthorizedException => (HttpStatusCode.Unauthorized, exception.Message),
             LoginFailedException => (HttpStatusCode.Unauthorized, exception.Message),
             UserAlreadyExistsException => (HttpStatusCode.Conflict, exception.Message),
             RegistrationFailedException => (HttpStatusCode.BadRequest, exception.Message),
             RefreshTokenException => (HttpStatusCode.Unauthorized, exception.Message),
             UserNotFoundException => (HttpStatusCode.NotFound, exception.Message),
+            EventNotFoundException=> (HttpStatusCode.NotFound, exception.Message),
             UserAlreadyAdminException => (HttpStatusCode.Conflict, exception.Message),
             PromotionFailedException => (HttpStatusCode.BadRequest, exception.Message),
             FileStorageException => (HttpStatusCode.InternalServerError, exception.Message),

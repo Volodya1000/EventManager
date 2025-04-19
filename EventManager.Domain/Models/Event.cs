@@ -96,8 +96,9 @@ public class Event
 
     public bool RemoveParticipant(Guid userId)
     {
-        var participant = _participants.FirstOrDefault(p => p.UserId == userId);
-        return participant != null && _participants.Remove(participant);
+        var participant = _participants.FirstOrDefault(p => p.UserId == userId) 
+            ?? throw new InvalidOperationException("Participation not found");
+        return _participants.Remove(participant);
     }
 
     public void UpdateDescription(string newDescription)

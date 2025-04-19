@@ -57,7 +57,7 @@ public static class EventTestFactory
 
     #region User Helpers
 
-    public static void SetupUserMock(
+    public static void SetupUserRepositoryMock(
         Mock<IUserRepository> userRepositoryMock,
         Guid userId,
         User user)
@@ -66,6 +66,31 @@ public static class EventTestFactory
             .Setup(r => r.GetUserById(userId))
             .ReturnsAsync(user);
     }
+
+
+    public static void SetupAccountServiceMock(
+        Mock<IAccountService> accountServiceMock,
+        Guid userId)
+    {
+        accountServiceMock
+          .Setup(s => s.GetCurrentUserId())
+          .Returns(userId);
+    }
+
+    //public static void SetupUserServiceMock(
+    //Mock<IAccountService> userServiceMock,
+    //Guid userId,
+    //UserDto userDto) // Используем DTO вместо доменной модели
+    //{
+    //    userServiceMock
+    //        .Setup(s => s.GetUserByIdAsync(userId))
+    //        .ReturnsAsync(userDto); // Предполагаем асинхронный метод
+
+    //    Если нужно обрабатывать несуществующих пользователей
+    //    userServiceMock
+    //        .Setup(s => s.GetUserByIdAsync(It.Is<Guid>(id => id != userId))
+    //        .ReturnsAsync((UserDto?)null);
+    //}
 
 
     /// <summary>
@@ -122,6 +147,13 @@ public static class EventTestFactory
 
     #region Mapper Configuration
 
+    public static Mock<IAccountService> CreateAccountServiceMock(Guid? userId = null)
+    {
+        var mock = new Mock<IAccountService>();
+        mock.Setup(a => a.GetCurrentUserId())
+            .Returns(userId ?? Guid.NewGuid());
+        return mock;
+    }
     public static IMapper CreateApplicationMapper()
     {
         var config = new MapperConfiguration(cfg =>

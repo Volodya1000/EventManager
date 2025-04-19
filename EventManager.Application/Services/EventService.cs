@@ -4,6 +4,7 @@ using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
+using EventManager.Application.Exceptions;
 using FluentValidation;
 
 namespace EventManager.Application.Services;
@@ -14,6 +15,7 @@ public class EventService : IEventService
     private readonly ICategoryRepository _categoryRepository;
     private readonly IMapper _mapper;
     private readonly IUserRepository _userRepository;
+    private readonly IAccountService _accountService;
     private readonly IValidator<CreateEventRequest> _createValidator;
     private readonly IValidator<UpdateEventRequest> _updateValidator;
     private readonly IValidator<EventFilterRequest> _filterValidator;
@@ -23,6 +25,7 @@ public class EventService : IEventService
         ICategoryRepository categoryRepository,
         IMapper mapper,
         IUserRepository userRepository,
+        IAccountService accountService,
         IValidator<CreateEventRequest> createValidator,
         IValidator<UpdateEventRequest> updateValidator,
         IValidator<EventFilterRequest> filterValidator)
@@ -31,6 +34,7 @@ public class EventService : IEventService
         _categoryRepository = categoryRepository;
         _mapper = mapper;
         _userRepository = userRepository;
+        _accountService = accountService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
         _filterValidator = filterValidator;
@@ -54,7 +58,7 @@ public class EventService : IEventService
 
         var categoryExists = await _categoryRepository.ExistsAsync(request.Category);
         if (!categoryExists)
-            throw new InvalidOperationException("Category not found");
+            throw new NotFoundException($"Category {request.Category} not found");
 
         var newEvent = Event.Create(
             Guid.NewGuid(),
@@ -87,9 +91,8 @@ public class EventService : IEventService
     {
         _updateValidator.ValidateAndThrow(request);
 
-        var eventById = await _eventRepository.GetByIdAsync(eventId);
-        if (eventById == null)
-            throw new InvalidOperationException($"Event with id: {eventId} not found");
+        var eventById = await _eventRepository.GetByIdAsync(eventId)
+           ?? throw new NotFoundException($"Event with id {eventId} not found");
 
 
         eventById.UpdateDescription(request.Description);
@@ -102,11 +105,9 @@ public class EventService : IEventService
         await _eventRepository.UpdateAsync(eventById);
     }
 
-    public async Task<PagedResponse<EventDto>> GetEventsByUserAsync(Guid userId, int page, int pageSize)
+    public async Task<PagedResponse<EventDto>> GetEventsByUserAsync(int page, int pageSize)
     {
-        var userExists = await _userRepository.GetUserById(userId) != null;
-        if (!userExists)
-            throw new InvalidOperationException($"User with id: {userId} not found");
+        var userId = _accountService.GetCurrentUserId();
 
         return await _eventRepository.GetEventsByUserAsync(userId, page, pageSize);
     }
@@ -125,17 +126,17 @@ public class EventService : IEventService
         return await _eventRepository.GetParticipantsAsync(eventId, pageNumber, pageSize);
     }
 
-    public async Task<Guid> RegisterAsync(Guid eventId, Guid userId)
+    public async Task<Guid> RegisterAsync(Guid eventId)
     {
-        var eventById = await _eventRepository.GetByIdAsync(eventId);
+        var userId = _accountService.GetCurrentUserId();
 
-        if (eventById == null) 
-            throw new InvalidOperationException($"Event with id: {eventId} not found");
+        var eventById = await _eventRepository.GetByIdAsync(eventId)
+            ??  throw new NotFoundException($"Event with id {eventId} not found");
 
         var user = await _userRepository.GetUserById(userId);
 
         if (user == null) 
-            throw new InvalidOperationException($"User with id: {userId} not found");
+            throw new NotFoundException($"User with id: {userId} not found");
 
         var newParticipant = Participant.Create(
             userId,
@@ -152,17 +153,15 @@ public class EventService : IEventService
         return userId;
     }
 
-    public async Task CancelAsync(Guid eventId, Guid userId)
+    public async Task CancelAsync(Guid eventId)
     {
-        var eventById = await _eventRepository.GetByIdAsync(eventId);
+        var userId = _accountService.GetCurrentUserId();
 
-        if (eventById == null)
-            throw new InvalidOperationException($"Event with id: {eventId} not found");
+        var eventById = await _eventRepository.GetByIdAsync(eventId)
+            ?? throw new NotFoundException($"Event with id {eventId} not found");
 
-        var user = await _userRepository.GetUserById(userId);
-
-        if (user == null)
-            throw new InvalidOperationException($"User with id: {userId} not found");
+        var participant = eventById.Participants.FirstOrDefault(p => p.UserId == userId)
+            ?? throw new NotFoundException("Participation not found");
 
         eventById.RemoveParticipant(userId);
 

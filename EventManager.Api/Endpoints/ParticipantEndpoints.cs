@@ -1,14 +1,11 @@
 ﻿using EventManager.Application.Dtos;
 using EventManager.Application.Interfaces.Services;
-using EventManager.Application.Requests;
-using EventManager.Application.Services;
 using EventManager.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace EventManager.Api.Endpoints;
+
 
 public static class ParticipantEndpoints
 {
@@ -19,15 +16,11 @@ public static class ParticipantEndpoints
             .RequireAuthorization();
 
         participantGroup.MapPost("/", RegisterParticipant)
-             .WithOpenApi(operation => new OpenApiOperation(operation)
-             {
-                 Summary = "Detects user from JWT",
-             })
-            .Produces(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status403Forbidden);
-
-        
+            .WithOpenApi(operation => new OpenApiOperation(operation)
+            {
+                Summary = "Detects user from JWT",
+            })
+            .Produces(StatusCodes.Status201Created);
 
         participantGroup.MapGet("/", GetEventParticipants)
             .Produces<PagedResponse<ParticipantDto>>();
@@ -37,31 +30,17 @@ public static class ParticipantEndpoints
             {
                 Summary = "Detects user from JWT",
             })
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status403Forbidden)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status204NoContent);
 
         return app;
     }
 
     private static async Task<IResult> RegisterParticipant(
-         Guid eventId,
-        [FromServices] IAccountService accountService,
-        [FromServices] IEventService eventService,
-        IHttpContextAccessor httpContextAccessor)
+        Guid eventId,
+        [FromServices] IEventService eventService)
     {
-        var userId = accountService.GetUserIdFromToken();
-        if (!userId.HasValue) return Results.Forbid();
-
-        try
-        {
-            var participationId = await eventService.RegisterAsync(eventId, userId.Value);
-            return Results.Created($"/api/events/{eventId}/participants/{participationId}", participationId);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        var participationId = await eventService.RegisterAsync(eventId);
+        return Results.Created($"/api/events/{eventId}/participants/{participationId}", participationId);
     }
 
     private static async Task<IResult> GetEventParticipants(
@@ -76,23 +55,9 @@ public static class ParticipantEndpoints
 
     private static async Task<IResult> CancelMyParticipation(
         Guid eventId,
-        [FromServices] IAccountService accountService,
-        [FromServices] IEventService eventService,
-        IHttpContextAccessor httpContextAccessor)
+        [FromServices] IEventService eventService)
     {
-        var userId = accountService.GetUserIdFromToken();
-        if (!userId.HasValue) return Results.Forbid();
-
-        try
-        {
-            await eventService.CancelAsync(eventId, userId.Value);
-            return Results.NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return ex.Message.Contains("not found")
-                ? Results.NotFound(ex.Message)
-                : Results.BadRequest(ex.Message);
-        }
+        await eventService.CancelAsync(eventId);
+        return Results.NoContent();
     }
 }

@@ -111,14 +111,10 @@ public static class EventEndpoints
 
     private static async Task<IResult> GetEventsByUser(
         [FromServices] IEventService eventService,
-        [FromServices] IAccountService accountService,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var userId = accountService.GetUserIdFromToken();
-        if (!userId.HasValue) return Results.Forbid();
-
-        var result = await eventService.GetEventsByUserAsync((Guid)userId, page, pageSize);
+        var result = await eventService.GetEventsByUserAsync(page, pageSize);
         return Results.Ok(result);
     }
 }
