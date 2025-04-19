@@ -36,8 +36,6 @@ public class CategoryRepository: ICategoryRepository
     public async Task DeleteCategoryAsync(Category category)
     {
         var entity = await _context.Categories.FindAsync(category.Id);
-        if (entity == null)
-            return;
 
         _context.Categories.Remove(entity);
         await _context.SaveChangesAsync();
@@ -47,8 +45,6 @@ public class CategoryRepository: ICategoryRepository
     {
         var existingEntity = await _context.Categories
             .FirstOrDefaultAsync(c => c.Id == category.Id);
-        if (existingEntity == null)
-            return;
 
         _mapper.Map(category, existingEntity); 
         _context.Entry(existingEntity).State = EntityState.Modified;

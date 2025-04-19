@@ -117,8 +117,6 @@ public class EventRepository : IEventRepository
     public async Task DeleteAsync(Guid id)
     {
         var entity = await _context.Events.FindAsync(id);
-        if (entity == null)
-            return;
 
         _context.Events.Remove(entity);
         var result = await _context.SaveChangesAsync();

@@ -17,25 +17,27 @@ public class ImageRepository:IImageRepository
         var entity = await _context.Events
             .Include(e => e.Images)
             .FirstOrDefaultAsync(e => e.Id == eventId);
-
-        if (entity == null)
-            throw new InvalidOperationException("Event not found");
+      
         var newImage = new ImageEntity { Url = imageUrl };
         entity.Images.Add(newImage);
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteImageAsyncWithoutCommit(Guid eventId, string imageUrl)
+    public async Task DeleteImageAsyncWithoutSaveChanges(Guid eventId, string imageUrl)
     {
         var entity = await _context.Events
             .Include(e => e.Images)
             .FirstOrDefaultAsync(e => e.Id == eventId);
 
-        if (entity == null)
-            throw new InvalidOperationException("Event not found");
-
         var imageToRemove = entity.Images.FirstOrDefault(i => i.Url == imageUrl);
         if (imageToRemove != null)
             entity.Images.Remove(imageToRemove);
+    }
+
+    public async Task<bool> ExistsAsync(Guid eventId, string url)
+    {
+        return await _context.Events.AsNoTracking()
+            .AnyAsync(e => e.Id == eventId
+                && e.Images.Any(i => i.Url == url));
     }
 }
