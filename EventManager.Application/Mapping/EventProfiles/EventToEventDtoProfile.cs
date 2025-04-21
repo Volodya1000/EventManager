@@ -2,11 +2,11 @@
 using EventManager.Application.Dtos;
 using EventManager.Domain.Models;
 
-namespace EventManager.Application.Mapping;
+namespace EventManager.Application.Mapping.EventProfiles;
 
-public class EventProfile : Profile
+public class EventToEventDtoProfile : Profile
 {
-    public EventProfile()
+    public EventToEventDtoProfile()
     {
         CreateMap<Event, EventDto>()
             .ForMember(dest => dest.ImageUrls,

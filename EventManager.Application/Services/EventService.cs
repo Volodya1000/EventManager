@@ -44,7 +44,8 @@ public class EventService : IEventService
     #region OperationsWithEvents
     public async Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize)
     {
-        return await _eventRepository.GetAllAsync(page, pageSize);
+        var result = await _eventRepository.GetAllAsync(page, pageSize);
+        return _mapper.Map<PagedResponse<EventDto>>(result);
     }
 
     public async Task<Guid> CreateAsync(CreateEventRequest request)
@@ -80,10 +81,10 @@ public class EventService : IEventService
         await _eventRepository.DeleteAsync(id);
     }  
 
-    public async Task<EventDto?> GetByIdAsync(Guid eventId)
+    public async Task<EventDto> GetByIdAsync(Guid eventId)
     {
-        var eventById = await _eventRepository.GetByIdAsync(eventId);
-
+        var eventById = await _eventRepository.GetByIdAsync(eventId)
+          ?? throw new NotFoundException($"Event with id {eventId} not found");
         return _mapper.Map<EventDto>(eventById);
     }
 
@@ -108,8 +109,8 @@ public class EventService : IEventService
     public async Task<PagedResponse<EventDto>> GetEventsByUserAsync(int page, int pageSize)
     {
         var userId = _accountService.GetCurrentUserId();
-
-        return await _eventRepository.GetEventsByUserAsync(userId, page, pageSize);
+        var result = await _eventRepository.GetEventsByUserAsync(userId, page, pageSize);
+        return _mapper.Map<PagedResponse<EventDto>>(result);
     }
     #endregion
 
@@ -117,13 +118,14 @@ public class EventService : IEventService
     public async Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize)
     {
         _filterValidator.ValidateAndThrow(filterRequest);
-
-        return await _eventRepository.GetFilteredAsync(filterRequest, page, pageSize);
+        var result = await _eventRepository.GetFilteredAsync(filterRequest, page, pageSize);
+        return _mapper.Map<PagedResponse<EventDto>>(result);
     }
 
     public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId,int pageNumber,int pageSize)
     {
-        return await _eventRepository.GetParticipantsAsync(eventId, pageNumber, pageSize);
+        var result = await _eventRepository.GetParticipantsAsync(eventId, pageNumber, pageSize);
+        return _mapper.Map<PagedResponse<ParticipantDto>>(result);
     }
 
     public async Task<Guid> RegisterAsync(Guid eventId)

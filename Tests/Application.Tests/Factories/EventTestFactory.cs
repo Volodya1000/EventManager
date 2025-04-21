@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
+using EventManager.Application.Mapping.EventProfiles;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
 using EventManager.Persistence;
@@ -159,7 +160,7 @@ public static class EventTestFactory
     public static IMapper CreateApplicationMapper()
     {
         var config = new MapperConfiguration(cfg =>
-            cfg.AddProfile<EventManager.Application.Mapping.EventProfile>());
+            cfg.AddProfile<EventToEventDtoProfile>());
         return config.CreateMapper();
     }
 
