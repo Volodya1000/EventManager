@@ -2,6 +2,8 @@
 using EventManager.Application.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Mapping.EventProfiles;
+using EventManager.Application.Mapping.PagedResponceProfiles;
+using EventManager.Application.Mapping.ParticipantProfiles;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
 using EventManager.Persistence;
@@ -160,7 +162,11 @@ public static class EventTestFactory
     public static IMapper CreateApplicationMapper()
     {
         var config = new MapperConfiguration(cfg =>
-            cfg.AddProfile<EventToEventDtoProfile>());
+        {
+            cfg.AddProfile<EventToEventDtoProfile>();
+            cfg.AddProfile<PagedResponceProfile>();
+            cfg.AddProfile<ParticipantToParticipantDtoProfile>();
+        });
         return config.CreateMapper();
     }
 
