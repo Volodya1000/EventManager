@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using EventManager.Infrastructure.Services;
 using EventManager.Infrastructure.Options;
+using EventManager.Persistence.Mapping.EventProfiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("Cache"));
 
 builder.Services.AddAutoMapper(
-    typeof(EventManager.Persistence.Mapping.EventProfile).Assembly
+    typeof(EventEntityToEventProfile).Assembly
 );
 
 //Регистрация в DI контейнер

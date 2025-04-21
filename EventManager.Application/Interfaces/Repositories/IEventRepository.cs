@@ -1,14 +1,13 @@
-﻿using EventManager.Application.Dtos;
-using EventManager.Application.Requests;
+﻿using EventManager.Application.Requests;
 using EventManager.Domain.Models;
 
 namespace EventManager.Application.Interfaces.Repositories;
 
 public interface IEventRepository
 {
-    Task<PagedResponse<EventDto>> GetAllAsync(int pageNumber, int pageSize);
+    Task<PagedResponse<Event>> GetAllAsync(int pageNumber, int pageSize);
 
-    Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filter,
+    Task<PagedResponse<Event>> GetFilteredAsync(EventFilterRequest filter,
                                                      int pageNumber,
                                                      int pageSize);
 
@@ -22,11 +21,11 @@ public interface IEventRepository
 
     Task DeleteAsync(Guid id);
 
-    Task<PagedResponse<EventDto>> GetEventsByUserAsync(Guid userId, int pageNumber, int pageSize);
+    Task<PagedResponse<Event>> GetEventsByUserAsync(Guid userId, int pageNumber, int pageSize);
 
 
 
-    Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId,
+    Task<PagedResponse<Participant>> GetParticipantsAsync(Guid eventId,
                                                                 int pageNumber,
                                                                  int pageSize);
 

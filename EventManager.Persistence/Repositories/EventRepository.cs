@@ -3,10 +3,7 @@ using EventManager.Application.Requests;
 using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using EventManager.Application.Interfaces.Repositories;
-using EventManager.Application.Dtos;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.Extensions.Logging;
 
 namespace EventManager.Persistence.Repositories;
 
@@ -22,21 +19,24 @@ public class EventRepository : IEventRepository
     }
 
     #region OperationsWithEvents
-    public async Task<PagedResponse<EventDto>> GetAllAsync(int pageNumber, int pageSize)
+    public async Task<PagedResponse<Event>> GetAllAsync(int pageNumber, int pageSize)
     {
         var query = _context.Events
             .AsNoTracking()
             .Include(e => e.Category)
-            .ProjectTo<EventDto>(_mapper.ConfigurationProvider); //проекция для оптимального sql запроса
+            .Include(e => e.Images)
+            .Include(e => e.Participants)
+                .ThenInclude(p => p.User)
+            .OrderBy(e => e.DateTime);
 
         var totalRecords = await query.CountAsync();
-        var data = await query
-            .OrderBy(e => e.DateTime)
+        var entities = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
+        var events = _mapper.Map<List<Event>>(entities);
+        return new PagedResponse<Event>(events, pageNumber, pageSize, totalRecords);
     }
 
     public async Task<Event?> GetByIdAsync(Guid id)
@@ -123,13 +123,17 @@ public class EventRepository : IEventRepository
     }
 
 
-    public async Task<PagedResponse<EventDto>> GetFilteredAsync(
-     EventFilterRequest filter,
-     int pageNumber,
-     int pageSize)
+    public async Task<PagedResponse<Event>> GetFilteredAsync(
+       EventFilterRequest filter,
+       int pageNumber,
+       int pageSize)
     {
         var query = _context.Events
             .AsNoTracking()
+            .Include(e => e.Category)
+            .Include(e => e.Images)
+            .Include(e => e.Participants)
+                .ThenInclude(p => p.User)
             .AsQueryable();
 
         if (filter.DateFrom.HasValue)
@@ -151,30 +155,34 @@ public class EventRepository : IEventRepository
             query = query.Where(e => e.MaxParticipants - e.Participants.Count >= filter.AvailableSpaces.Value);
 
         var totalRecords = await query.CountAsync();
-        var data = await query
+        var entities = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ProjectTo<EventDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
 
-        return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
+        var events = _mapper.Map<List<Event>>(entities);
+        return new PagedResponse<Event>(events, pageNumber, pageSize, totalRecords);
     }
 
-    public async Task<PagedResponse<EventDto>> GetEventsByUserAsync(Guid userId, int pageNumber, int pageSize)
+    public async Task<PagedResponse<Event>> GetEventsByUserAsync(Guid userId, int pageNumber, int pageSize)
     {
         var query = _context.Events
-            .AsNoTracking()
-            .Where(e => e.Participants.Any(p => p.UserId == userId))
-            .ProjectTo<EventDto>(_mapper.ConfigurationProvider);
+           .AsNoTracking()
+           .Include(e => e.Category)
+           .Include(e => e.Images)
+           .Include(e => e.Participants)
+               .ThenInclude(p => p.User)
+           .Where(e => e.Participants.Any(p => p.UserId == userId))
+           .OrderBy(e => e.DateTime);
 
         var totalRecords = await query.CountAsync();
-        var data = await query
-            .OrderBy(e => e.DateTime)
+        var entities = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        return new PagedResponse<EventDto>(data, pageNumber, pageSize, totalRecords);
+        var events = _mapper.Map<List<Event>>(entities);
+        return new PagedResponse<Event>(events, pageNumber, pageSize, totalRecords);
     }
 
     public async Task<bool> AnyEventWithCategoryAsync(Guid categoryId)
@@ -188,11 +196,11 @@ public class EventRepository : IEventRepository
 
 
     #region OperationsWithParticipants
-    public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(
-        Guid eventId, 
-        int pageNumber = 1, 
+    public async Task<PagedResponse<Participant>> GetParticipantsAsync(
+        Guid eventId,
+        int pageNumber = 1,
         int pageSize = 10)
-        {
+    {
         var query = _context.Participants
             .AsNoTracking()
             .Include(p => p.User)
@@ -206,12 +214,12 @@ public class EventRepository : IEventRepository
             .Take(pageSize)
             .ToListAsync();
 
-        var participantDtos = _mapper.Map<List<ParticipantDto>>(participants);
+        var mappedParticipants = _mapper.Map<List<Participant>>(participants);
 
-        return new PagedResponse<ParticipantDto>(
-            participantDtos, 
-            pageNumber, 
-            pageSize, 
+        return new PagedResponse<Participant>(
+            mappedParticipants,
+            pageNumber,
+            pageSize,
             totalCount
         );
     }

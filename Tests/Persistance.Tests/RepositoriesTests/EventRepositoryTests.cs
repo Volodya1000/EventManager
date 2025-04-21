@@ -2,6 +2,7 @@
 using EventManager.Domain.Models;
 using EventManager.Persistence;
 using EventManager.Persistence.Entities;
+using EventManager.Persistence.Mapping.EventProfiles;
 using EventManager.Persistence.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,7 @@ public class EventRepositoryTests : IDisposable
         _context = new ApplicationDbContext(options);
 
         var mapperConfig = new MapperConfiguration(cfg =>
-            cfg.AddProfile<EventManager.Persistence.Mapping.EventProfile>());
+            cfg.AddProfile<EventEntityToEventProfile>());
 
         _mapper = mapperConfig.CreateMapper();
         _repository = new EventRepository(_context, _mapper);

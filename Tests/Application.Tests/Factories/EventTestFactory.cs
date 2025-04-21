@@ -4,6 +4,8 @@ using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
 using EventManager.Persistence;
+using EventManager.Persistence.Mapping.EventProfiles;
+using EventManager.Persistence.Mapping.ParticipantProfiles;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
@@ -165,8 +167,8 @@ public static class EventTestFactory
     {
         var config = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile<EventManager.Persistence.Mapping.EventProfile>();
-            cfg.AddProfile<EventManager.Persistence.Mapping.ParticipantProfile>();
+            cfg.AddProfile<EventEntityToEventProfile>();
+            cfg.AddProfile<ParticipantEntityToParticipantProfile>();
         });
         return config.CreateMapper();
     }
