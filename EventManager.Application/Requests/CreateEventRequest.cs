@@ -6,5 +6,4 @@ string Description,
 DateTime DateTime,
 string Location,
 string Category,
-int MaxParticipants,
-List<string> ImageUrls);
+int MaxParticipants);

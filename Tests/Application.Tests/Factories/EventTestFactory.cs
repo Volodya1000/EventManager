@@ -37,8 +37,7 @@ public static class EventTestFactory
             DateTime: DateTime.UtcNow.AddDays(1),
             Location: DefaultLocation,
             Category: DefaultCategory,
-            MaxParticipants: DefaultMaxParticipants,
-            ImageUrls: new List<string>());
+            MaxParticipants: DefaultMaxParticipants);
 
         return configure != null ? configure(request) : request;
     }

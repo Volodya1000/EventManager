@@ -64,8 +64,7 @@ public class EventService : IEventService
             request.DateTime,
             request.Location,
             request.Category,
-            request.MaxParticipants,
-            request.ImageUrls.ToList());
+            request.MaxParticipants);
 
         await _eventRepository.AddAsync(newEvent, cst);
         return newEvent.Id;

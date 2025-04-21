@@ -205,7 +205,7 @@ public class EventServiceTests : IDisposable
         EventTestFactory.SetupAccountServiceMock(_accountServiceMock, user.Id);
 
         // Act
-        var resultUserId = await _eventService.RegisterAsync(eventId);
+        var resultUserId = await _eventService.RegisterAsync(eventId, CancellationToken.None);
 
         // Assert
         resultUserId.Should().Be(user.Id);
@@ -222,7 +222,7 @@ public class EventServiceTests : IDisposable
         EventTestFactory.SetupUserRepositoryMock(_userRepositoryMock, user.Id, user);
 
         // Act & Assert
-        await _eventService.Invoking(s => s.RegisterAsync(Guid.NewGuid()))
+        await _eventService.Invoking(s => s.RegisterAsync(Guid.NewGuid(), CancellationToken.None))
             .Should().ThrowAsync<NotFoundException>();
     }
 
@@ -236,7 +236,7 @@ public class EventServiceTests : IDisposable
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(
-            () => _eventService.RegisterAsync(eventId));
+            () => _eventService.RegisterAsync(eventId, CancellationToken.None));
     }
 
     [Fact(DisplayName = "GetParticipantsAsync: Корректно возвращает список участников")]
@@ -247,7 +247,7 @@ public class EventServiceTests : IDisposable
         var user = await EventTestFactory.CreateAndAddUserAsync(_context);
         EventTestFactory.SetupUserRepositoryMock(_userRepositoryMock, user.Id, user);
         EventTestFactory.SetupAccountServiceMock(_accountServiceMock, user.Id);
-        await _eventService.RegisterAsync(eventId);
+        await _eventService.RegisterAsync(eventId, CancellationToken.None);
 
         // Act
         var result = await _eventService.GetParticipantsAsync(eventId, 1, 10);
@@ -265,7 +265,7 @@ public class EventServiceTests : IDisposable
         var user = await EventTestFactory.CreateAndAddUserAsync(_context);
         EventTestFactory.SetupUserRepositoryMock(_userRepositoryMock, user.Id, user);
         EventTestFactory.SetupAccountServiceMock(_accountServiceMock, user.Id);
-        await _eventService.RegisterAsync(eventId);
+        await _eventService.RegisterAsync(eventId, CancellationToken.None);
 
         // Act
         await _eventService.CancelAsync(eventId);

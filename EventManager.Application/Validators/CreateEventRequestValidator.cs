@@ -35,9 +35,5 @@ public class CreateEventRequestValidator : AbstractValidator<CreateEventRequest>
         RuleFor(r => r.MaxParticipants)
             .GreaterThan(0)
             .WithMessage("Max participants must be positive");
-
-        RuleFor(r => r.ImageUrls)
-            .Must(list => list == null || list.All(url => Uri.TryCreate(url, UriKind.Absolute, out _)))
-            .WithMessage("All image URLs must be valid");
     }
 }
