@@ -34,27 +34,30 @@ public static class ImagesEndpoints
     private static async Task<IResult> GetEventImage(
         Guid eventId,
         string filename,
-        [FromServices] IImageService imageService)
+        [FromServices] IImageService imageService,
+        CancellationToken cst)
     {
-        var imageData = await imageService.GetImageAsync(eventId, filename);
+        var imageData = await imageService.GetImageAsync(eventId, filename, cst);
         return Results.File(imageData.Bytes, imageData.MimeType);
     }
 
     private static async Task<IResult> UploadEventImage(
         Guid eventId,
         [FromForm] IFormFile image,
-        [FromServices] IImageService imageService)
+        [FromServices] IImageService imageService,
+        CancellationToken cst)
     {
-        var imageUrl = await imageService.UploadImageAsync(eventId, image);
+        var imageUrl = await imageService.UploadImageAsync(eventId, image, cst);
         return Results.Created($"/api/events/{eventId}/images/{Path.GetFileName(imageUrl)}", imageUrl);
     }
 
     private static async Task<IResult> DeleteEventImage(
         Guid eventId,
         string filename,
-        [FromServices] IImageService imageService)
+        [FromServices] IImageService imageService,
+        CancellationToken cst)
     {
-        await imageService.DeleteImageAsync(eventId, filename);
+        await imageService.DeleteImageAsync(eventId, filename, cst);
         return Results.NoContent();
     }
 }

@@ -2,9 +2,18 @@
 
 public interface IImageRepository
 {
-    public Task AddImageToEventAsync(Guid eventId, string imageUrl);
-
-    public Task DeleteImageAsyncWithoutSaveChanges(Guid eventId, string imageUrl);
-
-    public  Task<bool> ExistsAsync(Guid eventId, string url);
+    Task AddImageToEventAsync(
+        Guid eventId, 
+        string imageUrl, 
+        CancellationToken cst = default);
+        
+    Task DeleteImageAsyncWithoutSaveChanges(
+        Guid eventId, 
+        string imageUrl, 
+        CancellationToken cst = default);
+        
+    Task<bool> ExistsAsync(
+        Guid eventId, 
+        string url, 
+        CancellationToken cst = default);
 }

@@ -1,8 +1,7 @@
 ﻿using EventManager.Application.Exceptions;
 using EventManager.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
-
-namespace EventManager.Infrastructure.Services;
+using System.Linq;
 
 public class FileService : IFileService
 {
@@ -11,17 +10,15 @@ public class FileService : IFileService
 
     public FileService()
     {
-        // Путь берется из переменной окружения или использует дефолт
         _uploadPath = Environment.GetEnvironmentVariable("FILE_STORAGE_PATH") ?? "/data/uploads";
     }
 
-    public async Task<string> SaveFile(IFormFile file)
+    public async Task<string> SaveFile(IFormFile file, CancellationToken cst = default)
     {
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!_allowedExtensions.Contains(extension))
             throw new InvalidOperationException($"Invalid file type: {extension}");
 
-        // Очищаем имя файла от небезопасных символов и удаляем расширение
         var originalName = Path.GetFileNameWithoutExtension(file.FileName);
         var sanitizedFileName = string.Concat(originalName
             .Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_'))
@@ -33,8 +30,13 @@ public class FileService : IFileService
         try
         {
             using var stream = new FileStream(filePath, FileMode.Create);
-            await file.CopyToAsync(stream);
+            await file.CopyToAsync(stream, cst);
             return $"/uploads/{uniqueName}";
+        }
+        catch (OperationCanceledException)
+        {
+            if (File.Exists(filePath)) File.Delete(filePath);
+            throw;
         }
         catch (Exception ex)
         {
@@ -42,7 +44,7 @@ public class FileService : IFileService
         }
     }
 
-    public Task DeleteFile(string fileUrl)
+    public async Task DeleteFile(string fileUrl, CancellationToken cst = default)
     {
         if (string.IsNullOrEmpty(fileUrl))
             throw new ArgumentNullException(nameof(fileUrl));
@@ -54,9 +56,12 @@ public class FileService : IFileService
         {
             if (File.Exists(fullPath))
             {
-                File.Delete(fullPath);
+                await Task.Run(() => File.Delete(fullPath), cst);
             }
-            return Task.CompletedTask;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

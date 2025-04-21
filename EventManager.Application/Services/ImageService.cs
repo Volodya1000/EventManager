@@ -28,50 +28,58 @@ public class ImageService : IImageService
         _cacheService = cacheService;
     }
 
-
-    public async Task<string> UploadImageAsync(Guid eventId, IFormFile image)
+    public async Task<string> UploadImageAsync(
+        Guid eventId,
+        IFormFile image,
+        CancellationToken cst = default)
     {
-        var eventById = await _eventRepository.GetByIdAsync(eventId)
+        var eventById = await _eventRepository.GetByIdAsync(eventId, cst)
             ?? throw new EventNotFoundException(eventId);
 
-        string imageUrl = await _fileStorage.SaveFile(image);
-        await _imageRepository.AddImageToEventAsync(eventId, imageUrl);
+        string imageUrl = await _fileStorage.SaveFile(image, cst);
+        await _imageRepository.AddImageToEventAsync(eventId, imageUrl, cst);
         return imageUrl;
     }
 
-    public async Task DeleteImageAsync(Guid eventId, string filename)
+    public async Task DeleteImageAsync(
+        Guid eventId,
+        string filename,
+        CancellationToken cst = default)
     {
-        var eventById = await _eventRepository.GetByIdAsync(eventId)
+        var eventById = await _eventRepository.GetByIdAsync(eventId, cst)
             ?? throw new EventNotFoundException(eventId);
 
         var normalizedUrl = NormalizeUrl(filename);
 
-        await _unitOfWork.BeginTransactionAsync();
+        await _unitOfWork.BeginTransactionAsync(cst);
         try
         {
-            if (! await _imageRepository.ExistsAsync(eventId, normalizedUrl))
+            if (!await _imageRepository.ExistsAsync(eventId, normalizedUrl, cst))
                 throw new ArgumentException("Image not found");
 
-            await _imageRepository.DeleteImageAsyncWithoutSaveChanges(eventId, normalizedUrl);
-            await _fileStorage.DeleteFile(normalizedUrl);
+            await _imageRepository.DeleteImageAsyncWithoutSaveChanges(eventId, normalizedUrl, cst);
+            await _fileStorage.DeleteFile(normalizedUrl, cst);
 
             var fname = Path.GetFileName(normalizedUrl);
-            await _cacheService.RemoveEventImageAsync(eventId, fname);
+            await _cacheService.RemoveEventImageAsync(eventId, fname, cst);
 
-            await _unitOfWork.CommitAsync();
+            await _unitOfWork.CommitAsync(cst);
         }
         catch
         {
-            await _unitOfWork.RollbackAsync();
+            await _unitOfWork.RollbackAsync(cst);
             throw;
         }
     }
 
-    public async Task<(byte[] Bytes, string MimeType)> GetImageAsync(Guid eventId, string filename)
+    public async Task<(byte[] Bytes, string MimeType)> GetImageAsync(
+        Guid eventId,
+        string filename,
+        CancellationToken cst = default)
     {
         ValidateFilename(filename);
 
-        var cachedImage = await _cacheService.GetEventImageAsync(eventId, filename);
+        var cachedImage = await _cacheService.GetEventImageAsync(eventId, filename, cst);
         if (cachedImage != null)
             return (cachedImage, GetMimeType(filename));
 
@@ -82,14 +90,13 @@ public class ImageService : IImageService
         if (!File.Exists(filePath))
             throw new FileNotFoundException("Image not found", filename);
 
-        var imageBytes = await File.ReadAllBytesAsync(filePath);
-        await _cacheService.SetEventImageAsync(eventId, filename, imageBytes);
+        var imageBytes = await File.ReadAllBytesAsync(filePath, cst);
+        await _cacheService.SetEventImageAsync(eventId, filename, imageBytes, cst);
 
         return (imageBytes, GetMimeType(filename));
     }
 
     #region Helpers
-
     private static void ValidateFilename(string filename)
     {
         if (string.IsNullOrWhiteSpace(filename) ||
@@ -118,6 +125,5 @@ public class ImageService : IImageService
             _ => "application/octet-stream",
         };
     }
-
     #endregion
 }

@@ -4,6 +4,6 @@ namespace EventManager.Application.Interfaces.Services;
 
 public interface IFileService
 {
-    Task<string> SaveFile(IFormFile file);
-    Task DeleteFile(string url);
+    Task<string> SaveFile(IFormFile file, CancellationToken cst = default);
+    Task DeleteFile(string fileUrl, CancellationToken cst = default);
 }

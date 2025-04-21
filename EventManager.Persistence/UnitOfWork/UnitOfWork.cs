@@ -1,7 +1,6 @@
 ﻿using EventManager.Domain.Interfaces;
+using EventManager.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
-
-namespace EventManager.Persistence.UnitOfWork;
 
 public class UnitOfWork : IUnitOfWork, IDisposable
 {
@@ -13,28 +12,28 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         _context = context;
     }
 
-    public async Task BeginTransactionAsync()
+    public async Task BeginTransactionAsync(CancellationToken cst = default)
     {
-        _transaction = await _context.Database.BeginTransactionAsync();
+        _transaction = await _context.Database.BeginTransactionAsync(cst);
     }
 
-    public async Task CommitAsync()
+    public async Task CommitAsync(CancellationToken cst = default)
     {
         try
         {
-            await _context.SaveChangesAsync(); 
-            await _transaction.CommitAsync();
+            await _context.SaveChangesAsync(cst);
+            await _transaction.CommitAsync(cst);
         }
         catch
         {
-            await RollbackAsync();
+            await RollbackAsync(cst);
             throw;
         }
     }
 
-    public async Task RollbackAsync()
+    public async Task RollbackAsync(CancellationToken cst = default)
     {
-        await _transaction.RollbackAsync();
+        await _transaction.RollbackAsync(cst);
     }
 
     public void Dispose()
