@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using EventManager.Application.Interfaces.Repositories;
+using EventManager.Domain.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Mapping.EventProfiles;
 using EventManager.Application.Mapping.PagedResponceProfiles;

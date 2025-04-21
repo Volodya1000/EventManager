@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using EventManager.Application.Dtos;
-using EventManager.Application.Interfaces.Repositories;
+using EventManager.Domain.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Domain.Models;
@@ -118,7 +118,15 @@ public class EventService : IEventService
     public async Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize)
     {
         _filterValidator.ValidateAndThrow(filterRequest);
-        var result = await _eventRepository.GetFilteredAsync(filterRequest, page, pageSize);
+        var result = await _eventRepository.GetFilteredAsync(
+               pageNumber: page,
+               pageSize: pageSize,
+               dateFrom: filterRequest.DateFrom,
+               dateTo: filterRequest.DateTo,
+               location: filterRequest.Location,
+               categories: filterRequest.Categories,
+               maxParticipants: filterRequest.MaxParticipants,
+               availableSpaces: filterRequest.AvailableSpaces);
         return _mapper.Map<PagedResponse<EventDto>>(result);
     }
 

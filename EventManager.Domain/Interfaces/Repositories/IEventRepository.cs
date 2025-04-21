@@ -1,15 +1,20 @@
-﻿using EventManager.Application.Requests;
-using EventManager.Domain.Models;
+﻿using EventManager.Domain.Models;
 
-namespace EventManager.Application.Interfaces.Repositories;
+namespace EventManager.Domain.Interfaces.Repositories;
 
 public interface IEventRepository
 {
     Task<PagedResponse<Event>> GetAllAsync(int pageNumber, int pageSize);
 
-    Task<PagedResponse<Event>> GetFilteredAsync(EventFilterRequest filter,
-                                                     int pageNumber,
-                                                     int pageSize);
+    Task<PagedResponse<Event>> GetFilteredAsync(
+         int pageNumber,
+         int pageSize,
+         DateTime? dateFrom = null,
+         DateTime? dateTo = null,
+         string? location = null,
+         List<string>? categories = null,
+         int? maxParticipants = null,
+         int? availableSpaces = null);
 
     Task AddAsync(Event newEvent);
 

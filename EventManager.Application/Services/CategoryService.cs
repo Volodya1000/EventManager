@@ -1,4 +1,4 @@
-﻿using EventManager.Application.Interfaces.Repositories;
+﻿using EventManager.Domain.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Domain.Models;
 

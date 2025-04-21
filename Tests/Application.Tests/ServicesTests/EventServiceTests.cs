@@ -1,7 +1,7 @@
 ﻿using Application.Tests.Factories;
 using AutoMapper;
 using EventManager.Application.Exceptions;
-using EventManager.Application.Interfaces.Repositories;
+using EventManager.Domain.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
 using EventManager.Application.Services;

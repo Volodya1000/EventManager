@@ -2,7 +2,7 @@ using EventManager.Api.Extensions;
 using EventManager.API.Handlers;
 using EventManager.Domain.Interfaces;
 using EventManager.Application.Interfaces.AuthTokenProcessor;
-using EventManager.Application.Interfaces.Repositories;
+using EventManager.Domain.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Services;
 using EventManager.Application.Validators;

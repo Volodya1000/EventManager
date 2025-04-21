@@ -1,8 +1,7 @@
 ﻿using EventManager.Domain.Models;
-using EventManager.Application.Requests;
 using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
-using EventManager.Application.Interfaces.Repositories;
+using EventManager.Domain.Interfaces.Repositories;
 using AutoMapper;
 
 namespace EventManager.Persistence.Repositories;
@@ -124,9 +123,14 @@ public class EventRepository : IEventRepository
 
 
     public async Task<PagedResponse<Event>> GetFilteredAsync(
-       EventFilterRequest filter,
-       int pageNumber,
-       int pageSize)
+      int pageNumber,
+      int pageSize,
+      DateTime? dateFrom = null,
+      DateTime? dateTo = null,
+      string? location = null,
+      List<string>? categories = null,
+      int? maxParticipants = null,
+      int? availableSpaces = null)
     {
         var query = _context.Events
             .AsNoTracking()
@@ -136,26 +140,28 @@ public class EventRepository : IEventRepository
                 .ThenInclude(p => p.User)
             .AsQueryable();
 
-        if (filter.DateFrom.HasValue)
-            query = query.Where(e => e.DateTime >= filter.DateFrom.Value);
+        if (dateFrom.HasValue)
+            query = query.Where(e => e.DateTime >= dateFrom.Value);
 
-        if (filter.DateTo.HasValue)
-            query = query.Where(e => e.DateTime <= filter.DateTo.Value);
+        if (dateTo.HasValue)
+            query = query.Where(e => e.DateTime <= dateTo.Value);
 
-        if (!string.IsNullOrEmpty(filter.Location))
-            query = query.Where(e => e.Location.Contains(filter.Location));
+        if (!string.IsNullOrEmpty(location))
+            query = query.Where(e => e.Location.Contains(location));
 
-        if (filter.Categories != null && filter.Categories.Any())
-            query = query.Where(e => filter.Categories.Contains(e.Category.Name));
+        if (categories != null && categories.Count > 0)
+            query = query.Where(e => categories.Contains(e.Category.Name));
 
-        if (filter.MaxParticipants.HasValue)
-            query = query.Where(e => e.MaxParticipants <= filter.MaxParticipants.Value);
+        if (maxParticipants.HasValue)
+            query = query.Where(e => e.MaxParticipants <= maxParticipants.Value);
 
-        if (filter.AvailableSpaces.HasValue)
-            query = query.Where(e => e.MaxParticipants - e.Participants.Count >= filter.AvailableSpaces.Value);
+        if (availableSpaces.HasValue)
+            query = query.Where(e => e.MaxParticipants - e.Participants.Count >= availableSpaces.Value);
 
+        // Пагинация
         var totalRecords = await query.CountAsync();
         var entities = await query
+            .OrderBy(e => e.DateTime)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

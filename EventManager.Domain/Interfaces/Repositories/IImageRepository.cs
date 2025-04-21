@@ -1,4 +1,4 @@
-﻿namespace EventManager.Application.Interfaces.Repositories;
+﻿namespace EventManager.Domain.Interfaces.Repositories;
 
 public interface IImageRepository
 {

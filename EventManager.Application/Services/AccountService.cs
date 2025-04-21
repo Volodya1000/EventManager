@@ -4,7 +4,7 @@ using EventManager.Domain.Models;
 using EventManager.Application.Exceptions;
 using EventManager.Application.Requests;
 using Microsoft.AspNetCore.Identity;
-using EventManager.Application.Interfaces.Repositories;
+using EventManager.Domain.Interfaces.Repositories;
 using EventManager.Domain.Constants;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;

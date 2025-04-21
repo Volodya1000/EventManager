@@ -1,6 +1,6 @@
 ﻿using EventManager.Domain.Models;
 
-namespace EventManager.Application.Interfaces.Repositories;
+namespace EventManager.Domain.Interfaces.Repositories;
 
 public interface ICategoryRepository
 {
