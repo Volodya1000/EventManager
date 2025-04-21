@@ -58,63 +58,70 @@ public static class EventEndpoints
     }
 
     private static async Task<IResult> GetAllEvents(
+        CancellationToken cst,
         [FromServices] IEventService service,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await service.GetAllAsync(page, pageSize);
+        var result = await service.GetAllAsync(page, pageSize, cst);
         return Results.Ok(result);
     }
 
     private static async Task<IResult> GetEventById(
         Guid id,
-        IEventService service)
+        IEventService service,
+        CancellationToken cst)
     {
-        var result = await service.GetByIdAsync(id);
+        var result = await service.GetByIdAsync(id, cst);
         return result is not null ? Results.Ok(result) : Results.NotFound();
     }
 
     private static async Task<IResult> CreateEvent(
         [FromServices] IEventService service,
-        [FromBody] CreateEventRequest request)
+        [FromBody] CreateEventRequest request,
+        CancellationToken cst)
     {
-        var createdId = await service.CreateAsync(request);
+        var createdId = await service.CreateAsync(request, cst);
         return Results.Created($"/api/events/{createdId}", createdId);
     }
 
     private static async Task<IResult> UpdateEvent(
         Guid id,
         [FromBody] UpdateEventRequest request,
-        IEventService service)
+        IEventService service,
+        CancellationToken cst)
     {
-        await service.UpdateAsync(id, request);
+        await service.UpdateAsync(id, request, cst);
         return Results.NoContent();
     }
 
     private static async Task<IResult> DeleteEvent(
         Guid id,
-        IEventService service)
+        IEventService service,
+        CancellationToken cst)
     {
-        await service.DeleteAsync(id);
+        await service.DeleteAsync(id, cst);
         return Results.NoContent();
     }
 
     private static async Task<IResult> GetFilteredEvents(
+        CancellationToken cst,
         [FromServices] IEventService service,
         [FromBody] EventFilterRequest eventFilterRequest,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await service.GetFilteredAsync(eventFilterRequest, page, pageSize);
+        var result = await service.GetFilteredAsync(eventFilterRequest, page, pageSize, cst);
         return Results.Ok(result);
     }
 
     private static async Task<IResult> GetEventsByUser(
+        CancellationToken cst,
         [FromServices] IEventService eventService,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await eventService.GetEventsByUserAsync(page, pageSize);
+        var result = await eventService.GetEventsByUserAsync(page, pageSize, cst);
         return Results.Ok(result);
     }
 }

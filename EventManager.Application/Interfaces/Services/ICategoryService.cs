@@ -4,8 +4,19 @@ namespace EventManager.Application.Interfaces.Services;
 
 public interface ICategoryService
 {
-    Task<Guid> AddCategoryAsync(string name);
-    Task DeleteCategoryAsync(Guid categoryId);
-    Task RenameCategoryAsync(Guid categoryId, string newName);
-    Task<IEnumerable<Category>> GetCategoriesAsync();
+    Task<IEnumerable<Category>> GetCategoriesAsync(
+        CancellationToken cst = default);
+
+    Task DeleteCategoryAsync(
+        Guid categoryId,
+        CancellationToken cst = default);
+
+    Task<Guid> AddCategoryAsync(
+        string name,
+        CancellationToken cst = default);
+
+    Task RenameCategoryAsync(
+        Guid categoryId,
+        string newName,
+        CancellationToken cst = default);
 }

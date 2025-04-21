@@ -49,34 +49,39 @@ public static class CategoriesEndpoints
         return app;
     }
 
-    private static async Task<IResult> GetAllCategories([FromServices] ICategoryService service)
+    private static async Task<IResult> GetAllCategories(
+       [FromServices] ICategoryService service,
+       CancellationToken cst) 
     {
-        var categories = await service.GetCategoriesAsync();
+        var categories = await service.GetCategoriesAsync(cst); 
         return Results.Ok(categories);
     }
 
     private static async Task<IResult> CreateCategory(
         string name,
-        [FromServices] ICategoryService service)
+        [FromServices] ICategoryService service,
+        CancellationToken cst) 
     {
-        var createdId = await service.AddCategoryAsync(name);
+        var createdId = await service.AddCategoryAsync(name, cst); 
         return Results.Created($"/api/events/categories/{createdId}", createdId);
     }
 
     private static async Task<IResult> DeleteCategory(
         Guid id,
-        [FromServices] ICategoryService service)
+        [FromServices] ICategoryService service,
+        CancellationToken cst)
     {
-        await service.DeleteCategoryAsync(id);
+        await service.DeleteCategoryAsync(id, cst); 
         return Results.NoContent();
     }
 
     private static async Task<IResult> RenameCategory(
         Guid id,
         string newName,
-        [FromServices] ICategoryService service)
+        [FromServices] ICategoryService service,
+        CancellationToken cst) 
     {
-        await service.RenameCategoryAsync(id, newName);
+        await service.RenameCategoryAsync(id, newName, cst); 
         return Results.NoContent();
     }
 }

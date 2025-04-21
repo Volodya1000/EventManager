@@ -33,34 +33,40 @@ public static class UserEndpoints
         return app;
     }
 
-    private static async Task<IResult> Register(RegisterRequest registerRequest, IAccountService accountService)
+    private static async Task<IResult> Register(
+      RegisterRequest registerRequest,
+      IAccountService accountService,
+      CancellationToken cst)
     {
-        await accountService.RegisterAsync(registerRequest);
-
+        await accountService.RegisterAsync(registerRequest, cst);
         return Results.Ok();
     }
 
-    private static async Task<IResult> Login(LoginRequest loginRequest, IAccountService accountService)
+    private static async Task<IResult> Login(
+        LoginRequest loginRequest,
+        IAccountService accountService,
+        CancellationToken cst)
     {
-        await accountService.LoginAsync(loginRequest);
-
+        await accountService.LoginAsync(loginRequest, cst);
         return Results.Ok();
     }
 
-    private static async Task<IResult> RefreshToken(HttpContext httpContext, IAccountService accountService)
+    private static async Task<IResult> RefreshToken(
+        HttpContext httpContext,
+        IAccountService accountService,
+        CancellationToken cst)
     {
         var refreshToken = httpContext.Request.Cookies["REFRESH_TOKEN"];
-
-        await accountService.RefreshTokenAsync(refreshToken);
-
+        await accountService.RefreshTokenAsync(refreshToken, cst);
         return Results.Ok();
     }
 
     private static async Task<IResult> PromoteToAdmin(
         string email,
-        IAccountService accountService)
+        IAccountService accountService,
+        CancellationToken cst)
     {
-        await accountService.PromoteUserToAdminAsync(email);
+        await accountService.PromoteUserToAdminAsync(email, cst);
         return Results.Ok();
     }
 }

@@ -36,10 +36,11 @@ public static class ParticipantEndpoints
     }
 
     private static async Task<IResult> RegisterParticipant(
-        Guid eventId,
-        [FromServices] IEventService eventService)
+      Guid eventId,
+      [FromServices] IEventService eventService,
+      CancellationToken cancellationToken)
     {
-        var participationId = await eventService.RegisterAsync(eventId);
+        var participationId = await eventService.RegisterAsync(eventId, cancellationToken);
         return Results.Created($"/api/events/{eventId}/participants/{participationId}", participationId);
     }
 
@@ -47,17 +48,19 @@ public static class ParticipantEndpoints
         Guid eventId,
         [FromServices] IEventService service,
         int pageNumber = 1,
-        int pageSize = 10)
+        int pageSize = 10,
+        CancellationToken cancellationToken = default)
     {
-        var result = await service.GetParticipantsAsync(eventId, pageNumber, pageSize);
+        var result = await service.GetParticipantsAsync(eventId, pageNumber, pageSize, cancellationToken);
         return Results.Ok(result);
     }
 
     private static async Task<IResult> CancelMyParticipation(
         Guid eventId,
-        [FromServices] IEventService eventService)
+        [FromServices] IEventService eventService,
+        CancellationToken cancellationToken)
     {
-        await eventService.CancelAsync(eventId);
+        await eventService.CancelAsync(eventId, cancellationToken);
         return Results.NoContent();
     }
 }

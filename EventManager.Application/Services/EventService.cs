@@ -40,24 +40,20 @@ public class EventService : IEventService
         _filterValidator = filterValidator;
     }
 
-
-    #region OperationsWithEvents
-    public async Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize)
+    public async Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize, CancellationToken cst = default)
     {
-        var result = await _eventRepository.GetAllAsync(page, pageSize);
+        var result = await _eventRepository.GetAllAsync(page, pageSize, cst);
         return _mapper.Map<PagedResponse<EventDto>>(result);
     }
 
-    public async Task<Guid> CreateAsync(CreateEventRequest request)
+    public async Task<Guid> CreateAsync(CreateEventRequest request, CancellationToken cst = default)
     {
         _createValidator.ValidateAndThrow(request);
-
-        // Проверка уникальности имени события
-        var exists = await _eventRepository.GetByNameAsync(request.Name);
+        var exists = await _eventRepository.GetByNameAsync(request.Name, cst);
         if (exists != null)
             throw new InvalidOperationException("Event with this name already exists");
 
-        var categoryExists = await _categoryRepository.ExistsAsync(request.Category);
+        var categoryExists = await _categoryRepository.ExistsAsync(request.Category, cst);
         if (!categoryExists)
             throw new NotFoundException($"Category {request.Category} not found");
 
@@ -71,115 +67,88 @@ public class EventService : IEventService
             request.MaxParticipants,
             request.ImageUrls.ToList());
 
-        await _eventRepository.AddAsync(newEvent);
-
-        return newEvent.Id; 
+        await _eventRepository.AddAsync(newEvent, cst);
+        return newEvent.Id;
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id, CancellationToken cst = default)
     {
-        await _eventRepository.DeleteAsync(id);
-    }  
+        await _eventRepository.DeleteAsync(id, cst);
+    }
 
-    public async Task<EventDto> GetByIdAsync(Guid eventId)
+    public async Task<EventDto> GetByIdAsync(Guid eventId, CancellationToken cst = default)
     {
-        var eventById = await _eventRepository.GetByIdAsync(eventId)
+        var eventById = await _eventRepository.GetByIdAsync(eventId, cst)
           ?? throw new NotFoundException($"Event with id {eventId} not found");
         return _mapper.Map<EventDto>(eventById);
     }
 
-    public async Task UpdateAsync(Guid eventId, UpdateEventRequest request)
+    public async Task UpdateAsync(Guid eventId, UpdateEventRequest request, CancellationToken cst = default)
     {
         _updateValidator.ValidateAndThrow(request);
-
-        var eventById = await _eventRepository.GetByIdAsync(eventId)
+        var eventById = await _eventRepository.GetByIdAsync(eventId, cst)
            ?? throw new NotFoundException($"Event with id {eventId} not found");
 
-
         eventById.UpdateDescription(request.Description);
-
         eventById.UpdateLocation(request.Location);
-
         eventById.UpdateMaxParticipants(request.MaxParticipants);
 
-
-        await _eventRepository.UpdateAsync(eventById);
+        await _eventRepository.UpdateAsync(eventById, cst);
     }
 
-    public async Task<PagedResponse<EventDto>> GetEventsByUserAsync(int page, int pageSize)
+    public async Task<PagedResponse<EventDto>> GetEventsByUserAsync(int page, int pageSize, CancellationToken cst = default)
     {
         var userId = _accountService.GetCurrentUserId();
-        var result = await _eventRepository.GetEventsByUserAsync(userId, page, pageSize);
+        var result = await _eventRepository.GetEventsByUserAsync(userId, page, pageSize, cst);
         return _mapper.Map<PagedResponse<EventDto>>(result);
     }
-    #endregion
 
-    #region OperationsWithParticipants
-    public async Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize)
+    public async Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize, CancellationToken cst = default)
     {
         _filterValidator.ValidateAndThrow(filterRequest);
         var result = await _eventRepository.GetFilteredAsync(
-               pageNumber: page,
-               pageSize: pageSize,
-               dateFrom: filterRequest.DateFrom,
-               dateTo: filterRequest.DateTo,
-               location: filterRequest.Location,
-               categories: filterRequest.Categories,
-               maxParticipants: filterRequest.MaxParticipants,
-               availableSpaces: filterRequest.AvailableSpaces);
+            page, pageSize, filterRequest.DateFrom, filterRequest.DateTo,
+            filterRequest.Location, filterRequest.Categories,
+            filterRequest.MaxParticipants, filterRequest.AvailableSpaces, cst);
         return _mapper.Map<PagedResponse<EventDto>>(result);
     }
 
-    public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId,int pageNumber,int pageSize)
+    public async Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId, int pageNumber, int pageSize, CancellationToken cst = default)
     {
-        var result = await _eventRepository.GetParticipantsAsync(eventId, pageNumber, pageSize);
+        var result = await _eventRepository.GetParticipantsAsync(eventId, pageNumber, pageSize, cst);
         return _mapper.Map<PagedResponse<ParticipantDto>>(result);
     }
 
-    public async Task<Guid> RegisterAsync(Guid eventId)
+    public async Task<Guid> RegisterAsync(Guid eventId, CancellationToken cst)
     {
         var userId = _accountService.GetCurrentUserId();
+        var eventById = await _eventRepository.GetByIdAsync(eventId, cst)
+            ?? throw new NotFoundException($"Event with id {eventId} not found");
 
-        var eventById = await _eventRepository.GetByIdAsync(eventId)
-            ??  throw new NotFoundException($"Event with id {eventId} not found");
-
-        var user = await _userRepository.GetUserById(userId);
-
-        if (user == null) 
-            throw new NotFoundException($"User with id: {userId} not found");
+        var user = await _userRepository.GetUserById(userId, cst)
+            ?? throw new NotFoundException($"User with id: {userId} not found");
 
         var newParticipant = Participant.Create(
-            userId,
-            eventId,
-            DateTime.Now,
-            user.FirstName,
-            user.LastName,
-            user.DateOfBirth);
+            userId, eventId, DateTime.Now,
+            user.FirstName, user.LastName, user.DateOfBirth);
 
         eventById.AddParticipant(newParticipant);
-
-        await _eventRepository.UpdateAsync(eventById);
-
+        await _eventRepository.UpdateAsync(eventById, cst);
         return userId;
     }
 
-    public async Task CancelAsync(Guid eventId)
+    public async Task CancelAsync(Guid eventId, CancellationToken cst = default)
     {
         var userId = _accountService.GetCurrentUserId();
-
-        var eventById = await _eventRepository.GetByIdAsync(eventId)
+        var eventById = await _eventRepository.GetByIdAsync(eventId, cst)
             ?? throw new NotFoundException($"Event with id {eventId} not found");
 
         var participant = eventById.Participants.FirstOrDefault(p => p.UserId == userId)
             ?? throw new NotFoundException("Participation not found");
 
         eventById.RemoveParticipant(userId);
-
-        await _eventRepository.UpdateAsync(eventById);
+        await _eventRepository.UpdateAsync(eventById, cst);
     }
-
-
-    #endregion
 }
 
 

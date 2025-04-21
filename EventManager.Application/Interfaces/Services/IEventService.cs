@@ -6,16 +6,14 @@ namespace EventManager.Application.Interfaces.Services;
 
 public interface IEventService
 {
-    Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize);
-    Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize);
-    Task<PagedResponse<EventDto>> GetEventsByUserAsync(int page, int pageSize);
-    Task<EventDto> GetByIdAsync(Guid id);
-    Task<Guid> CreateAsync(CreateEventRequest request);
-    Task UpdateAsync(Guid id, UpdateEventRequest request);
-    Task DeleteAsync(Guid id);
-    Task<Guid> RegisterAsync(Guid eventId);
-    Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId,int pageNumber, int pageSize);
-    Task CancelAsync(Guid eventId);
+    Task<PagedResponse<EventDto>> GetAllAsync(int page, int pageSize, CancellationToken cst = default);
+    Task<PagedResponse<EventDto>> GetFilteredAsync(EventFilterRequest filterRequest, int page, int pageSize, CancellationToken cst = default);
+    Task<PagedResponse<EventDto>> GetEventsByUserAsync(int page, int pageSize, CancellationToken cst = default);
+    Task<EventDto> GetByIdAsync(Guid id, CancellationToken cst = default);
+    Task<Guid> CreateAsync(CreateEventRequest request, CancellationToken cst = default);
+    Task UpdateAsync(Guid id, UpdateEventRequest request, CancellationToken cst = default);
+    Task DeleteAsync(Guid id, CancellationToken cst = default);
+    Task<Guid> RegisterAsync(Guid eventId, CancellationToken cst = default);
+    Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId, int pageNumber, int pageSize, CancellationToken cst = default);
+    Task CancelAsync(Guid eventId, CancellationToken cst = default);
 }
-
-

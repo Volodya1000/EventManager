@@ -14,14 +14,14 @@ public class GlobalExceptionHandler : IExceptionHandler
         _logger = logger;
     }
     
-    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cst)
     {
         var (statusCode, message) = GetExceptionDetails(exception);
         
         _logger.LogError(exception, exception.Message);
 
         httpContext.Response.StatusCode = (int)statusCode;
-        await httpContext.Response.WriteAsJsonAsync(message, cancellationToken);
+        await httpContext.Response.WriteAsJsonAsync(message, cst);
 
         return true;
     }
