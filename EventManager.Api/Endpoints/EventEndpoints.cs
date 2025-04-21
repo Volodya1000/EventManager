@@ -46,7 +46,7 @@ public static class EventEndpoints
                 Summary = "Filter events by criteria",
             });
 
-        eventGroup.MapGet("/user/{userId}", GetEventsByUser)
+        eventGroup.MapGet("/user/", GetEventsByUser)
            .RequireAuthorization()
            .Produces(StatusCodes.Status404NotFound)
            .WithOpenApi(operation => new OpenApiOperation(operation)

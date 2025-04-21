@@ -129,7 +129,7 @@ public class EventService : IEventService
             ?? throw new NotFoundException($"User with id: {userId} not found");
 
         var newParticipant = Participant.Create(
-            userId, eventId, DateTime.Now,
+            userId, eventId, DateTime.UtcNow,
             user.FirstName, user.LastName, user.DateOfBirth);
 
         eventById.AddParticipant(newParticipant);

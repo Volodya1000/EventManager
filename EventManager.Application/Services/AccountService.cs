@@ -9,6 +9,7 @@ using EventManager.Domain.Constants;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace EventManager.Application.Services;
 
@@ -39,7 +40,8 @@ public class AccountService : IAccountService
         cst.ThrowIfCancellationRequested();
 
         var userExists = await _userManager.FindByEmailAsync(registerRequest.Email)
-            .WaitAsync(cst)??
+            .WaitAsync(cst);
+          if(userExists!=null)
             throw new UserAlreadyExistsException(registerRequest.Email);
 
         var user = User.Create(
@@ -155,8 +157,8 @@ public class AccountService : IAccountService
 
     private Guid? GetUserIdFromToken()
     {
-        var userIdClaim = _httpContextAccessor.HttpContext?
-            .User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        var userIdClaim = _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         return Guid.TryParse(userIdClaim, out var userId)
             ? userId
