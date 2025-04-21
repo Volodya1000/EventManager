@@ -13,17 +13,17 @@ public class UserRepository : IUserRepository
         _applicationDbContext = applicationDbContext;
     }
 
-    public async Task<User?> GetUserByRefreshTokenAsync(string refreshToken)
+    public async Task<User?> GetUserByRefreshTokenAsync(string refreshToken, CancellationToken cst = default)
     {
         return await _applicationDbContext.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.RefreshToken == refreshToken);
+            .FirstOrDefaultAsync(x => x.RefreshToken == refreshToken, cst);
     }
 
-    public async Task<User?> GetUserById(Guid id)
+    public async Task<User?> GetUserById(Guid id, CancellationToken cst = default)
     {
         return await _applicationDbContext.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, cst);
     }
 }

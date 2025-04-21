@@ -34,57 +34,59 @@ public class AccountService : IAccountService
         _httpContextAccessor = httpContextAccessor;
     }
 
-
-    public async Task RegisterAsync(RegisterRequest registerRequest)
+    public async Task RegisterAsync(RegisterRequest registerRequest, CancellationToken cst = default)
     {
-        var userExists = await _userManager.FindByEmailAsync(registerRequest.Email) != null;
+        cst.ThrowIfCancellationRequested();
 
-        if (userExists)
-        {
-            throw new UserAlreadyExistsException(email: registerRequest.Email);
-        }
+        var userExists = await _userManager.FindByEmailAsync(registerRequest.Email)
+            .WaitAsync(cst)??
+            throw new UserAlreadyExistsException(registerRequest.Email);
 
-        var user = User.Create(registerRequest.Email, 
-            registerRequest.FirstName, registerRequest.LastName, registerRequest.DateOfBirth);
+        var user = User.Create(
+            registerRequest.Email,
+            registerRequest.FirstName,
+            registerRequest.LastName,
+            registerRequest.DateOfBirth);
 
-
-        //Эта перегрузка CreateAsync осуществляет валидацию
-        //пароля на соответствие правилам которые описаны
-        //в EventManager.Api.Extensions.ApiExtensions.AddIdentityWithPasswordAndEmailSecurity
-        var result = await _userManager.CreateAsync(user, registerRequest.Password);
-
+        var result = await _userManager.CreateAsync(user, registerRequest.Password)
+            .WaitAsync(cst);
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(x => x.Description);
             _logger.LogWarning("Registration failed for {Email}: {Errors}",
                 registerRequest.Email, errors);
-            throw new RegistrationFailedException(result.Errors.Select(x => x.Description));
+            throw new RegistrationFailedException(errors);
         }
 
-        await _userManager.AddToRoleAsync(user, IdentityRoleConstants.User);
+        await _userManager.AddToRoleAsync(user, IdentityRoleConstants.User)
+            .WaitAsync(cst);
     }
 
-    public async Task LoginAsync(LoginRequest loginRequest)
+    public async Task LoginAsync(LoginRequest loginRequest, CancellationToken cst = default)
     {
-        var user = await _userManager.FindByEmailAsync(loginRequest.Email);
+        cst.ThrowIfCancellationRequested();
 
-        if (user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
+        var user = await _userManager.FindByEmailAsync(loginRequest.Email)
+            .WaitAsync(cst);
+        if (user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password)
+            .WaitAsync(cst))
         {
             throw new LoginFailedException(loginRequest.Email);
         }
 
-        await UpdateUserTokensAsync(user);
+        await UpdateUserTokensAsync(user, cst);
     }
 
-    public async Task RefreshTokenAsync(string? refreshToken)
+    public async Task RefreshTokenAsync(string? refreshToken, CancellationToken cst = default)
     {
+        cst.ThrowIfCancellationRequested();
+
         if (string.IsNullOrEmpty(refreshToken))
         {
             throw new RefreshTokenException("Refresh token is missing.");
         }
 
-        var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
-
+        var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken, cst);
         if (user == null)
         {
             throw new RefreshTokenException("Unable to retrieve user for refresh token");
@@ -95,50 +97,52 @@ public class AccountService : IAccountService
             throw new RefreshTokenException("Refresh token is expired.");
         }
 
-        await UpdateUserTokensAsync(user);
+        await UpdateUserTokensAsync(user, cst);
     }
 
-    private async Task UpdateUserTokensAsync(User user)
+    private async Task UpdateUserTokensAsync(User user, CancellationToken cst = default)
     {
-        IList<string> roles = await _userManager.GetRolesAsync(user);
+        cst.ThrowIfCancellationRequested();
+
+        IList<string> roles = await _userManager.GetRolesAsync(user)
+            .WaitAsync(cst);
 
         var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user, roles);
         var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
-
         var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
 
         user.RefreshToken = refreshTokenValue;
         user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
 
-        await _userManager.UpdateAsync(user);
+        await _userManager.UpdateAsync(user)
+            .WaitAsync(cst);
 
         _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
         _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
     }
 
-    public async Task PromoteUserToAdminAsync(string email)
+    public async Task PromoteUserToAdminAsync(string email, CancellationToken cst = default)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        cst.ThrowIfCancellationRequested();
+
+        var user = await _userManager.FindByEmailAsync(email)
+            .WaitAsync(cst);
         if (user == null) throw new UserNotFoundException(email);
 
-        if (await _userManager.IsInRoleAsync(user, IdentityRoleConstants.Admin))
+        if (await _userManager.IsInRoleAsync(user, IdentityRoleConstants.Admin)
+            .WaitAsync(cst))
         {
             throw new UserAlreadyAdminException(email, IdentityRoleConstants.Admin);
         }
 
-        var result = await _userManager.AddToRoleAsync(user, IdentityRoleConstants.Admin);
-
+        var result = await _userManager.AddToRoleAsync(user, IdentityRoleConstants.Admin)
+            .WaitAsync(cst);
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             _logger.LogError("Role promotion failed for user with email:{Email}: {Errors}", email, errors);
-            throw new PromotionFailedException(email,IdentityRoleConstants.Admin,errors);
+            throw new PromotionFailedException(email, IdentityRoleConstants.Admin, errors);
         }
-
-        // Получаем оставшееся время текущего токена
-        TimeSpan remainingTime = user.RefreshTokenExpiresAtUtc.HasValue
-            ? user.RefreshTokenExpiresAtUtc.Value - DateTime.UtcNow
-            : TimeSpan.FromDays(7); // Если токена нет, используем дефолт
 
         _logger.LogInformation("User with email:{Email} promoted to Admin role", email);
     }

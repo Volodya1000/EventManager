@@ -10,7 +10,6 @@ using EventManager.Domain.Options;
 using EventManager.Infrastructure.Processors;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
-using EventManager.Persistence.UnitOfWork;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;

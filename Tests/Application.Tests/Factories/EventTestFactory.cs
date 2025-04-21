@@ -68,7 +68,7 @@ public static class EventTestFactory
         User user)
     {
         userRepositoryMock
-            .Setup(r => r.GetUserById(userId))
+             .Setup(r => r.GetUserById(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
     }
 
@@ -81,22 +81,6 @@ public static class EventTestFactory
           .Setup(s => s.GetCurrentUserId())
           .Returns(userId);
     }
-
-    //public static void SetupUserServiceMock(
-    //Mock<IAccountService> userServiceMock,
-    //Guid userId,
-    //UserDto userDto) // Используем DTO вместо доменной модели
-    //{
-    //    userServiceMock
-    //        .Setup(s => s.GetUserByIdAsync(userId))
-    //        .ReturnsAsync(userDto); // Предполагаем асинхронный метод
-
-    //    Если нужно обрабатывать несуществующих пользователей
-    //    userServiceMock
-    //        .Setup(s => s.GetUserByIdAsync(It.Is<Guid>(id => id != userId))
-    //        .ReturnsAsync((UserDto?)null);
-    //}
-
 
     /// <summary>
     ///  Создание тестового пользователя и добавление его в контекст

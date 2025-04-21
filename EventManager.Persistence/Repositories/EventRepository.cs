@@ -1,10 +1,9 @@
-﻿using EventManager.Domain.Models;
-using EventManager.Persistence.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
 using EventManager.Domain.Interfaces.Repositories;
-using AutoMapper;
-
-namespace EventManager.Persistence.Repositories;
+using EventManager.Domain.Models;
+using EventManager.Persistence.Entities;
+using EventManager.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 public class EventRepository : IEventRepository
 {
@@ -18,7 +17,7 @@ public class EventRepository : IEventRepository
     }
 
     #region OperationsWithEvents
-    public async Task<PagedResponse<Event>> GetAllAsync(int pageNumber, int pageSize)
+    public async Task<PagedResponse<Event>> GetAllAsync(int pageNumber, int pageSize, CancellationToken cst = default)
     {
         var query = _context.Events
             .AsNoTracking()
@@ -28,17 +27,17 @@ public class EventRepository : IEventRepository
                 .ThenInclude(p => p.User)
             .OrderBy(e => e.DateTime);
 
-        var totalRecords = await query.CountAsync();
+        var totalRecords = await query.CountAsync(cst);
         var entities = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cst);
 
         var events = _mapper.Map<List<Event>>(entities);
         return new PagedResponse<Event>(events, pageNumber, pageSize, totalRecords);
     }
 
-    public async Task<Event?> GetByIdAsync(Guid id)
+    public async Task<Event?> GetByIdAsync(Guid id, CancellationToken cst = default)
     {
         var entity = await _context.Events
             .AsNoTracking()
@@ -46,12 +45,12 @@ public class EventRepository : IEventRepository
             .Include(e => e.Images)
             .Include(e => e.Participants)
                 .ThenInclude(p => p.User)
-            .FirstOrDefaultAsync(e => e.Id == id);
+            .FirstOrDefaultAsync(e => e.Id == id, cst);
 
         return entity != null ? _mapper.Map<Event>(entity) : null;
     }
 
-    public async Task<Event?> GetByNameAsync(string name)
+    public async Task<Event?> GetByNameAsync(string name, CancellationToken cst = default)
     {
         var entity = await _context.Events
             .AsNoTracking()
@@ -59,15 +58,14 @@ public class EventRepository : IEventRepository
             .Include(e => e.Images)
             .Include(e => e.Participants)
                 .ThenInclude(p => p.User)
-            .FirstOrDefaultAsync(e => e.Name == name);
+            .FirstOrDefaultAsync(e => e.Name == name, cst);
 
         return entity != null ? _mapper.Map<Event>(entity) : null;
     }
 
-
-    public async Task AddAsync(Event newEvent)
-    {  
-        var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name == newEvent.Category);
+    public async Task AddAsync(Event newEvent, CancellationToken cst = default)
+    {
+        var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name == newEvent.Category, cst);
 
         var entity = new EventEntity
         {
@@ -82,23 +80,21 @@ public class EventRepository : IEventRepository
                 .ToList() ?? new List<ImageEntity>()
         };
 
-        await _context.Events.AddAsync(entity);
-        await _context.SaveChangesAsync();
+        await _context.Events.AddAsync(entity, cst);
+        await _context.SaveChangesAsync(cst);
     }
 
-    public async Task UpdateAsync(Event updatedEvent)
+    public async Task UpdateAsync(Event updatedEvent, CancellationToken cst = default)
     {
         var entity = await _context.Events
             .Include(e => e.Participants)
-            .FirstOrDefaultAsync(e => e.Id == updatedEvent.Id);
+            .FirstOrDefaultAsync(e => e.Id == updatedEvent.Id, cst);
 
-        // Обновляем свойства
         entity.Description = updatedEvent.Description;
         entity.DateTime = updatedEvent.DateTime;
         entity.Location = updatedEvent.Location;
         entity.MaxParticipants = updatedEvent.MaxParticipants;
 
-        // Обновляем участников
         entity.Participants = updatedEvent.Participants?
             .Select(p => new ParticipantEntity
             {
@@ -108,19 +104,16 @@ public class EventRepository : IEventRepository
             })
             .ToList() ?? new List<ParticipantEntity>();
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cst);
     }
 
-
-
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id, CancellationToken cst = default)
     {
-        var entity = await _context.Events.FindAsync(id);
+        var entity = await _context.Events.FindAsync(new object[] { id }, cst);
 
         _context.Events.Remove(entity);
-        var result = await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cst);
     }
-
 
     public async Task<PagedResponse<Event>> GetFilteredAsync(
       int pageNumber,
@@ -130,7 +123,8 @@ public class EventRepository : IEventRepository
       string? location = null,
       List<string>? categories = null,
       int? maxParticipants = null,
-      int? availableSpaces = null)
+      int? availableSpaces = null,
+      CancellationToken cst = default)
     {
         var query = _context.Events
             .AsNoTracking()
@@ -158,19 +152,18 @@ public class EventRepository : IEventRepository
         if (availableSpaces.HasValue)
             query = query.Where(e => e.MaxParticipants - e.Participants.Count >= availableSpaces.Value);
 
-        // Пагинация
-        var totalRecords = await query.CountAsync();
+        var totalRecords = await query.CountAsync(cst);
         var entities = await query
             .OrderBy(e => e.DateTime)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cst);
 
         var events = _mapper.Map<List<Event>>(entities);
         return new PagedResponse<Event>(events, pageNumber, pageSize, totalRecords);
     }
 
-    public async Task<PagedResponse<Event>> GetEventsByUserAsync(Guid userId, int pageNumber, int pageSize)
+    public async Task<PagedResponse<Event>> GetEventsByUserAsync(Guid userId, int pageNumber, int pageSize, CancellationToken cst = default)
     {
         var query = _context.Events
            .AsNoTracking()
@@ -181,44 +174,43 @@ public class EventRepository : IEventRepository
            .Where(e => e.Participants.Any(p => p.UserId == userId))
            .OrderBy(e => e.DateTime);
 
-        var totalRecords = await query.CountAsync();
+        var totalRecords = await query.CountAsync(cst);
         var entities = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cst);
 
         var events = _mapper.Map<List<Event>>(entities);
         return new PagedResponse<Event>(events, pageNumber, pageSize, totalRecords);
     }
 
-    public async Task<bool> AnyEventWithCategoryAsync(Guid categoryId)
+    public async Task<bool> AnyEventWithCategoryAsync(Guid categoryId, CancellationToken cst = default)
     {
-        return await _context.Events.
-            AsNoTracking().AnyAsync(e => e.Category.Id== categoryId);
+        return await _context.Events
+            .AsNoTracking()
+            .AnyAsync(e => e.Category.Id == categoryId, cst);
     }
-
-
     #endregion
-
 
     #region OperationsWithParticipants
     public async Task<PagedResponse<Participant>> GetParticipantsAsync(
         Guid eventId,
         int pageNumber = 1,
-        int pageSize = 10)
+        int pageSize = 10,
+        CancellationToken cst = default)
     {
         var query = _context.Participants
             .AsNoTracking()
             .Include(p => p.User)
             .Where(p => p.EventId == eventId);
 
-        var totalCount = await query.CountAsync();
+        var totalCount = await query.CountAsync(cst);
 
         var participants = await query
             .OrderBy(p => p.RegistrationDate)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cst);
 
         var mappedParticipants = _mapper.Map<List<Participant>>(participants);
 
@@ -229,6 +221,5 @@ public class EventRepository : IEventRepository
             totalCount
         );
     }
-
     #endregion
 }

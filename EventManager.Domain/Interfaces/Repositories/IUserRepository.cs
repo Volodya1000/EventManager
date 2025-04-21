@@ -4,7 +4,6 @@ namespace EventManager.Domain.Interfaces.Repositories;
 
 public interface IUserRepository
 {
-    Task<User?> GetUserByRefreshTokenAsync(string refreshToken);
-
-    Task<User?> GetUserById(Guid id);
+    Task<User?> GetUserByRefreshTokenAsync(string refreshToken, CancellationToken cst = default);
+    Task<User?> GetUserById(Guid id, CancellationToken cst = default);
 }
