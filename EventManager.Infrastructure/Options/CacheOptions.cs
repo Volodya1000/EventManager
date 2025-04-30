@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-
-namespace EventManager.Infrastructure.Options;
+﻿namespace EventManager.Infrastructure.Options;
 
 public class CacheOptions
 {

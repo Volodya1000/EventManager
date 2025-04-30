@@ -2,21 +2,21 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using EventManager.Domain.Options;
+using EventManager.Infrastructure.Options;
 using EventManager.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using EventManager.Application.Interfaces.AuthTokenProcessor;
 
-namespace EventManager.Infrastructure.Processors;
+namespace EventManager.Infrastructure.Services;
 
-public class AuthTokenProcessor : IAuthTokenProcessor
+public class AuthTokenService : IAuthTokenService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly JwtOptions _jwtOptions;
-    
-    public AuthTokenProcessor(IOptions<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
+
+    public AuthTokenService(IOptions<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
         _jwtOptions = jwtOptions.Value;
@@ -84,7 +84,7 @@ public class AuthTokenProcessor : IAuthTokenProcessor
                 //cookie будет отправляться только тогда,
                 //когда пользователь находится на том же сайте, где cookie был установлен
                 //Это предотвращает атаки Cross-Site Request Forgery
-                SameSite = SameSiteMode.Strict 
+                SameSite = SameSiteMode.Strict
             });
     }
 }

@@ -1,7 +1,6 @@
 ﻿using EventManager.Application.Exceptions;
 using EventManager.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
-using System.Linq;
 
 public class FileService : IFileService
 {

@@ -1,4 +1,4 @@
-﻿namespace EventManager.Domain.Options;
+﻿namespace EventManager.Infrastructure.Options;
 
 public class JwtOptions
 {

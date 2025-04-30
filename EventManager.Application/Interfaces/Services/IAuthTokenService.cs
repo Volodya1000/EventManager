@@ -2,7 +2,7 @@
 
 namespace EventManager.Application.Interfaces.AuthTokenProcessor;
 
-public interface IAuthTokenProcessor
+public interface IAuthTokenService
 {
     (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(User user, IList<string> roles);
     string GenerateRefreshToken();

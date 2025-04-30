@@ -15,14 +15,14 @@ namespace EventManager.Application.Services;
 
 public class AccountService : IAccountService
 {
-    private readonly IAuthTokenProcessor _authTokenProcessor;
+    private readonly IAuthTokenService _authTokenProcessor;
     private readonly UserManager<User> _userManager;
     private readonly IUserRepository _userRepository;
     private readonly ILogger<AccountService> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AccountService(
-        IAuthTokenProcessor authTokenProcessor,
+        IAuthTokenService authTokenProcessor,
         UserManager<User> userManager,
         IUserRepository userRepository,
         ILogger<AccountService> logger,

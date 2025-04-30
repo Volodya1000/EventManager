@@ -6,8 +6,6 @@ using EventManager.Domain.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Services;
 using EventManager.Application.Validators;
-using EventManager.Domain.Options;
-using EventManager.Infrastructure.Processors;
 using EventManager.Persistence;
 using EventManager.Persistence.Repositories;
 using FluentValidation;
@@ -17,18 +15,8 @@ using EventManager.Infrastructure.Services;
 using EventManager.Infrastructure.Options;
 using EventManager.Persistence.Mapping.EventProfiles;
 using EventManager.Application.Mapping.EventProfiles;
-using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    serverOptions.ConfigureHttpsDefaults(httpsOptions =>
-    {
-        var certPath = Path.Combine("/app/certificates", "aspnetapp.pfx");
-        httpsOptions.ServerCertificate = new X509Certificate2(certPath, "password");
-    });
-});
 
 builder.Services.AddOpenApi();
 
@@ -61,7 +49,6 @@ builder.Services.AddAutoMapper(
 
 //Регистрация в DI контейнер
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
 
 //Регистрация репозиториев
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -70,9 +57,8 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 
 
-
-
 //Регистрация сервисов
+builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEventService, EventService>();

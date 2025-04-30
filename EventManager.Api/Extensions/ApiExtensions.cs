@@ -1,11 +1,9 @@
 ﻿using EventManager.Api.Endpoints;
 using EventManager.Domain.Models;
-using EventManager.Domain.Options;
+using EventManager.Infrastructure.Options;
 using EventManager.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
