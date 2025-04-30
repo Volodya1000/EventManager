@@ -161,11 +161,9 @@ public class EventTests
     [Fact(DisplayName = "RemoveParticipant: Возвращает false при отсутствии участника")]
     public void RemoveParticipant_WithNonExistingUser_ReturnsFalse()
     {
-        // Act
-        var result = _testEvent.RemoveParticipant(Guid.NewGuid());
-
-        // Assert
-        result.Should().BeFalse();
+        // Act & Assert
+        FluentActions.Invoking(() => _testEvent.RemoveParticipant(Guid.NewGuid()))
+              .Should().Throw<InvalidOperationException>();
     }
 
     [Fact(DisplayName = "RemoveParticipant: Удаляет существующего участника")]
