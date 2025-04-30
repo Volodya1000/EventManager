@@ -32,4 +32,7 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+RUN mkdir -p /app/certificates
+COPY EventManager.Api/certificates/aspnetapp.pfx /app/certificates
+
 ENTRYPOINT ["dotnet", "EventManager.Api.dll"]

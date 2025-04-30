@@ -17,8 +17,18 @@ using EventManager.Infrastructure.Services;
 using EventManager.Infrastructure.Options;
 using EventManager.Persistence.Mapping.EventProfiles;
 using EventManager.Application.Mapping.EventProfiles;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ConfigureHttpsDefaults(httpsOptions =>
+    {
+        var certPath = Path.Combine("/app/certificates", "aspnetapp.pfx");
+        httpsOptions.ServerCertificate = new X509Certificate2(certPath, "password");
+    });
+});
 
 builder.Services.AddOpenApi();
 
