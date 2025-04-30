@@ -1,5 +1,4 @@
-﻿using EventManager.Api.Endpoints;
-using EventManager.Domain.Models;
+﻿using EventManager.Domain.Models;
 using EventManager.Infrastructure.Options;
 using EventManager.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,19 +8,16 @@ using System.Text;
 
 namespace EventManager.Api.Extensions;
 
-public static class ApiExtensions
+public static class SecurityExtensions
 {
-    public static void AddMappedEndpoints(this IEndpointRouteBuilder app)
+    public static void AddAuthConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
-        app.MapUserEndpoints();
-        app.MapEventEndpoints();
-        app.MapParticipantEndpoints();
-        app.MapImagesEndpoints();
-        app.MapCategoriesEndpoints();
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.JwtOptionsKey));
+        services.AddAuthorization();
     }
 
     public static void AddApiAuthentication(
-       this IServiceCollection services,IConfiguration configuration)
+  this IServiceCollection services, IConfiguration configuration)
     {
         services.AddAuthentication(opt =>
         {
@@ -30,8 +26,8 @@ public static class ApiExtensions
             opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
         }).AddJwtBearer(options =>
         {
-            var jwtOptions = configuration.GetSection(JwtOptions.JwtOptionsKey)
-                .Get<JwtOptions>() ?? throw new ArgumentException(nameof(JwtOptions));
+            var jwtOptions = configuration.GetRequiredSection(JwtOptions.JwtOptionsKey).Get<JwtOptions>()
+            ?? throw new InvalidOperationException("JWT configuration is missing");
 
             // Настройка параметров валидации JWT токенов
             options.TokenValidationParameters = new TokenValidationParameters
@@ -57,7 +53,7 @@ public static class ApiExtensions
         });
     }
 
-    public static void AddIdentityWithPasswordAndEmailSecurity(
+    public static void AddIdentityConfiguration(
     this IServiceCollection services)
     {
         services.AddIdentity<User, IdentityRole<Guid>>(opt =>
