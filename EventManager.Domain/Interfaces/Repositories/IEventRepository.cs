@@ -27,7 +27,7 @@ public interface IEventRepository
         CancellationToken cst = default);
 
     Task DeleteAsync(
-        Guid id,
+        Event deleteEvent,
         CancellationToken cst = default);
 
     Task<PagedResponse<Event>> GetFilteredAsync(

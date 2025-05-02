@@ -5,5 +5,5 @@ string Name,
 string Description,
 DateTime DateTime,
 string Location,
-string Category,
+Guid CategoryId,
 int MaxParticipants);

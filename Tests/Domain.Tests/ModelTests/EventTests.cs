@@ -27,7 +27,7 @@ public class EventTests
             "Test Description",
             dateTime ?? DateTime.UtcNow.AddDays(1),
             "Test Location",
-            "Test Category",
+            Guid.NewGuid(),
             maxParticipants);
     }
 

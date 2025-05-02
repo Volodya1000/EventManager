@@ -28,9 +28,9 @@ public class CreateEventRequestValidator : AbstractValidator<CreateEventRequest>
             .Length(Event.MIN_LOCATION_LENGTH, Event.MAX_LOCATION_LENGTH)
             .WithMessage($"Location must be between {Event.MIN_LOCATION_LENGTH} and {Event.MAX_LOCATION_LENGTH} characters");
 
-        RuleFor(r => r.Category)
+        RuleFor(r => r.CategoryId)
             .NotEmpty()
-            .WithMessage("Category is required");
+            .WithMessage("Category Id is required");
 
         RuleFor(r => r.MaxParticipants)
             .GreaterThan(0)

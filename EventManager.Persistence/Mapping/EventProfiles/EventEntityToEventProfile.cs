@@ -15,7 +15,7 @@ public class EventEntityToEventProfile : Profile
                        src.Description,
                        src.DateTime,
                        src.Location,
-                       src.Category.Name,
+                       src.Category.Id,
                        src.MaxParticipants,
                        src.Images.Select(i => i.Url).ToList()))
                    .ForMember(dest => dest.Participants, opt => opt.Ignore())// Игнорируем автоматический маппинг

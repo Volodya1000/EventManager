@@ -6,6 +6,7 @@ using EventManager.Application.Requests;
 using EventManager.Domain.Models;
 using EventManager.Application.Exceptions;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 
 namespace EventManager.Application.Services;
 
@@ -53,9 +54,8 @@ public class EventService : IEventService
         if (exists != null)
             throw new InvalidOperationException("Event with this name already exists");
 
-        var categoryExists = await _categoryRepository.ExistsAsync(request.Category, cst);
-        if (!categoryExists)
-            throw new NotFoundException($"Category {request.Category} not found");
+        var categoryExists = await _categoryRepository.GetByIdAsync(request.CategoryId, cst)
+            ??throw new NotFoundException($"Category with id {request.CategoryId} not found");
 
         var newEvent = Event.Create(
             Guid.NewGuid(),
@@ -63,16 +63,19 @@ public class EventService : IEventService
             request.Description,
             request.DateTime,
             request.Location,
-            request.Category,
+            request.CategoryId,
             request.MaxParticipants);
 
         await _eventRepository.AddAsync(newEvent, cst);
         return newEvent.Id;
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken cst = default)
+    public async Task DeleteAsync(Guid eventId, CancellationToken cst = default)
     {
-        await _eventRepository.DeleteAsync(id, cst);
+        var eventById = await _eventRepository.GetByIdAsync(eventId, cst)
+          ?? throw new NotFoundException($"Event with id {eventId} not found");
+
+        await _eventRepository.DeleteAsync(eventById, cst);
     }
 
     public async Task<EventDto> GetByIdAsync(Guid eventId, CancellationToken cst = default)

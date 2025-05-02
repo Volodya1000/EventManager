@@ -17,7 +17,8 @@ namespace Application.Tests.Factories;
 public static class EventTestFactory
 {
     // Константы для значений по умолчанию
-    public const string DefaultCategory = "Sports";
+    //public const string DefaultCategory = "Sports";
+    public static readonly Guid defaultCategoryId = Guid.NewGuid();
     public const string DefaultDescription = "Test Description";
     public const int DefaultMaxParticipants = 10;
     public const string DefaultLocation = "Test Location";
@@ -36,7 +37,7 @@ public static class EventTestFactory
             Description: DefaultDescription,
             DateTime: DateTime.UtcNow.AddDays(1),
             Location: DefaultLocation,
-            Category: DefaultCategory,
+            CategoryId: defaultCategoryId,
             MaxParticipants: DefaultMaxParticipants);
 
         return configure != null ? configure(request) : request;
@@ -120,15 +121,12 @@ public static class EventTestFactory
 
     private static void SeedTestCategory(ApplicationDbContext context)
     {
-        if (!context.Categories.Any(c => c.Name == DefaultCategory))
+        context.Categories.Add(new EventManager.Persistence.Entities.CategoryEntity
         {
-            context.Categories.Add(new EventManager.Persistence.Entities.CategoryEntity
-            {
-                Id = Guid.NewGuid(),
-                Name = DefaultCategory
-            });
-            context.SaveChanges();
-        }
+            Id = defaultCategoryId,
+            Name = "TestCategoryName"
+        });
+        context.SaveChanges();
     }
 
     #endregion

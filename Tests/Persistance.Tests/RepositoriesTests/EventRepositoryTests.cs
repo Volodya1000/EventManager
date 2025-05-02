@@ -14,6 +14,7 @@ public class EventRepositoryTests : IDisposable
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly EventRepository _repository;
+    private readonly Guid defaultCategoryId = Guid.NewGuid();
 
     public EventRepositoryTests()
     {
@@ -29,15 +30,15 @@ public class EventRepositoryTests : IDisposable
         _mapper = mapperConfig.CreateMapper();
         _repository = new EventRepository(_context, _mapper);
 
-        AddTestCategory();
+        SeedTestCategory();
     }
 
-    private void AddTestCategory()
+    private void SeedTestCategory()
     {
         _context.Categories.Add(new CategoryEntity
         {
-            Id = Guid.NewGuid(),
-            Name = "Sports"
+            Id = defaultCategoryId,
+            Name = "TestCategoryName"
         });
         _context.SaveChanges();
     }
@@ -58,7 +59,7 @@ public class EventRepositoryTests : IDisposable
             description: "Description of event",
             dateTime: DateTime.UtcNow.AddDays(1),
             location: "Location of event",
-            category: "Sports",
+            categoryId: defaultCategoryId,
             maxParticipants: 10,
             imageUrls: new List<string> { "https://example.com/url1", 
                                             "https://example.com/url2" }
@@ -75,7 +76,7 @@ public class EventRepositoryTests : IDisposable
         createdEvent.Description.Should().Be(newEvent.Description);
         createdEvent.DateTime.Should().Be(newEvent.DateTime);
         createdEvent.Location.Should().Be(newEvent.Location);
-        createdEvent.Category.Should().Be(newEvent.Category);
+        createdEvent.CategoryId.Should().Be(newEvent.CategoryId);
         createdEvent.MaxParticipants.Should().Be(newEvent.MaxParticipants);
         createdEvent.ImageUrls.Should().BeEquivalentTo(newEvent.ImageUrls);
     }
@@ -90,7 +91,7 @@ public class EventRepositoryTests : IDisposable
                 description: $"Description of event {i}",
                 dateTime: DateTime.UtcNow.AddDays(i),
                 location: $"Location of event {i}",
-                category: "Sports",
+                categoryId: defaultCategoryId,
                 maxParticipants: 10);
 
             await _repository.AddAsync(@event);

@@ -12,7 +12,7 @@ public class Event
     public string Description { get; private set; }
     public DateTime DateTime { get; private set; }
     public string Location { get; private set; }
-    public string Category { get; }
+    public Guid CategoryId { get; }
     public int MaxParticipants { get; private set; }
     public int RegisteredParticipants => _participants.Count;
 
@@ -28,7 +28,7 @@ public class Event
         string description,
         DateTime dateTime,
         string location,
-        string category,
+        Guid categoryId,
         int maxParticipants,
         List<string> imageUrls)
     {
@@ -37,7 +37,7 @@ public class Event
         Description = description;
         DateTime = dateTime;
         Location = location;
-        Category = category;
+        CategoryId = categoryId;
         MaxParticipants = maxParticipants;
         _imageUrls = imageUrls ?? new List<string>();
     }
@@ -48,7 +48,7 @@ public class Event
         string description,
         DateTime dateTime,
         string location,
-        string category,
+        Guid categoryId,
         int maxParticipants,
         List<string> imageUrls = null)
     {
@@ -78,7 +78,7 @@ public class Event
             trimmedDescription,
             dateTime,
             trimmedLocation,
-            category,
+            categoryId,
             maxParticipants,
             imageUrls);
     }

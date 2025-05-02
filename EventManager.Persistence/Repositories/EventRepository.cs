@@ -65,51 +65,29 @@ public class EventRepository : IEventRepository
 
     public async Task AddAsync(Event newEvent, CancellationToken cst = default)
     {
-        var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name == newEvent.Category, cst);
-
-        var entity = new EventEntity
-        {
-            Id = newEvent.Id,
-            Name = newEvent.Name,
-            Description = newEvent.Description,
-            DateTime = newEvent.DateTime,
-            Location = newEvent.Location,
-            CategoryId = category.Id,
-            MaxParticipants = newEvent.MaxParticipants,
-            Images = newEvent.ImageUrls?.Select(url => new ImageEntity { Id = Guid.NewGuid(), Url = url })
-                .ToList() ?? new List<ImageEntity>()
-        };
-
+        var entity = _mapper.Map<EventEntity>(newEvent);
         await _context.Events.AddAsync(entity, cst);
         await _context.SaveChangesAsync(cst);
     }
 
     public async Task UpdateAsync(Event updatedEvent, CancellationToken cst = default)
     {
-        var entity = await _context.Events
+        var existingEntity = await _context.Events
             .Include(e => e.Participants)
             .FirstOrDefaultAsync(e => e.Id == updatedEvent.Id, cst);
 
-        entity.Description = updatedEvent.Description;
-        entity.DateTime = updatedEvent.DateTime;
-        entity.Location = updatedEvent.Location;
-        entity.MaxParticipants = updatedEvent.MaxParticipants;
+        if (existingEntity == null)
+            throw new ArgumentException("Event not found");
 
-        entity.Participants = updatedEvent.Participants?
-            .Select(p => new ParticipantEntity
-            {
-                UserId = p.UserId,
-                EventId = entity.Id,
-                RegistrationDate = p.RegistrationDate
-            })
-            .ToList() ?? new List<ParticipantEntity>();
-
+        // Маппим обновленные данные из доменной модели в существующую сущность
+        _mapper.Map(updatedEvent, existingEntity);
         await _context.SaveChangesAsync(cst);
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken cst = default)
+    public async Task DeleteAsync(Event deleteEvent, CancellationToken cst = default)
     {
-        var entity = await _context.Events.FindAsync(new object[] { id }, cst);
+        var entity = await _context.Events.FindAsync(new object[] { deleteEvent.Id }, cst);
+        if (entity == null) return;
 
         _context.Events.Remove(entity);
         await _context.SaveChangesAsync(cst);
