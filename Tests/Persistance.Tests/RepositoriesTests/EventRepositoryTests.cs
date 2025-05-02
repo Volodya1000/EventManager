@@ -3,7 +3,7 @@ using EventManager.Domain.Models;
 using EventManager.Persistence;
 using EventManager.Persistence.Entities;
 using EventManager.Persistence.Mapping.EventProfiles;
-using EventManager.Persistence.Repositories;
+using EventManager.Persistence.Mapping.ParticipantProfiles;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,10 +24,14 @@ public class EventRepositoryTests : IDisposable
 
         _context = new ApplicationDbContext(options);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-            cfg.AddProfile<EventEntityToEventProfile>());
+        var config = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<EventEntityToEventProfile>();
+            cfg.AddProfile<ParticipantEntityToParticipantProfile>();
+            cfg.AddProfile<EventToEventEntityProfile>();
+        });
 
-        _mapper = mapperConfig.CreateMapper();
+        _mapper = config.CreateMapper();
         _repository = new EventRepository(_context, _mapper);
 
         SeedTestCategory();
@@ -60,10 +64,7 @@ public class EventRepositoryTests : IDisposable
             dateTime: DateTime.UtcNow.AddDays(1),
             location: "Location of event",
             categoryId: defaultCategoryId,
-            maxParticipants: 10,
-            imageUrls: new List<string> { "https://example.com/url1", 
-                                            "https://example.com/url2" }
-             );
+            maxParticipants: 10);
 
         // Act
         await _repository.AddAsync(newEvent);
@@ -78,7 +79,6 @@ public class EventRepositoryTests : IDisposable
         createdEvent.Location.Should().Be(newEvent.Location);
         createdEvent.CategoryId.Should().Be(newEvent.CategoryId);
         createdEvent.MaxParticipants.Should().Be(newEvent.MaxParticipants);
-        createdEvent.ImageUrls.Should().BeEquivalentTo(newEvent.ImageUrls);
     }
 
     private async Task SeedMultipleEvents(int count)

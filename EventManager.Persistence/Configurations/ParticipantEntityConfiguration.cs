@@ -10,9 +10,10 @@ public class ParticipantEntityConfiguration : IEntityTypeConfiguration<Participa
     {
         builder.ToTable("Participants");
 
-        builder.HasKey(p => p.Id);
-        builder.Property(p => p.Id).ValueGeneratedOnAdd();
+        //builder.HasKey(p => p.Id);
+        //builder.Property(p => p.Id).ValueGeneratedOnAdd();
 
+        builder.HasKey(p => new { p.UserId, p.EventId });
         // Уникальный индекс для предотвращения дублирования регистраций
         builder.HasIndex(p => new { p.UserId, p.EventId }).IsUnique();
 

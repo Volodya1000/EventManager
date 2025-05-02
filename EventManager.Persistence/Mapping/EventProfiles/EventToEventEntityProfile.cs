@@ -9,9 +9,8 @@ public class EventToEventEntityProfile:Profile
     public EventToEventEntityProfile() 
     {
         CreateMap<Event, EventEntity>()
-           .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
-           .ForMember(dest => dest.Images, opt => opt.MapFrom(src =>
-               src.ImageUrls.Select(url => new ImageEntity { Url = url })))
-           .ForMember(dest => dest.Participants, opt => opt.MapFrom(src => src.Participants));
+            .ForMember(dest => dest.Participants, opt => opt.Ignore())
+            .ForMember(dest => dest.Images, opt => opt.Ignore())
+            .ForMember(dest => dest.Category, opt => opt.Ignore());
     }
 }

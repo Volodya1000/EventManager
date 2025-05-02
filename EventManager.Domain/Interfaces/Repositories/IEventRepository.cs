@@ -58,6 +58,11 @@ public interface IEventRepository
         int pageNumber = 1,
         int pageSize = 10,
         CancellationToken cst = default);
+
+    Task AddAsync(Participant participant, 
+        CancellationToken cst = default);
+    Task RemoveAsync(Participant participant,
+        CancellationToken cst = default);
     #endregion
 }
 

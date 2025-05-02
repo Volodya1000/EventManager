@@ -7,7 +7,6 @@ using EventManager.Application.Requests;
 using EventManager.Application.Services;
 using EventManager.Application.Validators;
 using EventManager.Persistence;
-using EventManager.Persistence.Repositories;
 using FluentAssertions;
 using Moq;
 
@@ -90,7 +89,7 @@ public class EventServiceTests : IDisposable
     }
 
 
-    [Fact(DisplayName = "CreateAsync: Ппроисходит exception при повторяющемся имени события")]
+    [Fact(DisplayName = "CreateAsync: Происходит exception при повторяющемся имени события")]
     public async Task CreateAsync_WithDuplicateName_ThrowsException()
     {
         // Arrange

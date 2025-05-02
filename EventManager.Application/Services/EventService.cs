@@ -135,7 +135,7 @@ public class EventService : IEventService
             user.FirstName, user.LastName, user.DateOfBirth);
 
         eventById.AddParticipant(newParticipant);
-        await _eventRepository.UpdateAsync(eventById, cst);
+        await _eventRepository.AddAsync(newParticipant, cst);
         return userId;
     }
 
@@ -149,7 +149,7 @@ public class EventService : IEventService
             ?? throw new NotFoundException("Participation not found");
 
         eventById.RemoveParticipant(userId);
-        await _eventRepository.UpdateAsync(eventById, cst);
+        await _eventRepository.RemoveAsync(participant, cst);
     }
 }
 

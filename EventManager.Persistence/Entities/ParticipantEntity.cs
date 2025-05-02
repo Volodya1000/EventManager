@@ -4,7 +4,7 @@ namespace EventManager.Persistence.Entities;
 
 public class ParticipantEntity
 {
-    public Guid Id { get; set; }
+    //public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public Guid EventId { get; set; }
     public DateTime RegistrationDate { get; set; }

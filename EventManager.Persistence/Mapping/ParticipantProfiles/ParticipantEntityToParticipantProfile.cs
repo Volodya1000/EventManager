@@ -4,7 +4,7 @@ using EventManager.Persistence.Entities;
 
 namespace EventManager.Persistence.Mapping.ParticipantProfiles;
 
-public class ParticipantEntityToParticipantProfile:Profile
+public class ParticipantEntityToParticipantProfile : Profile
 {
     public ParticipantEntityToParticipantProfile()
     {

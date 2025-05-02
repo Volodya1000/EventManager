@@ -72,23 +72,14 @@ public class EventRepository : IEventRepository
 
     public async Task UpdateAsync(Event updatedEvent, CancellationToken cst = default)
     {
-        var existingEntity = await _context.Events
-            .Include(e => e.Participants)
-            .FirstOrDefaultAsync(e => e.Id == updatedEvent.Id, cst);
-
-        if (existingEntity == null)
-            throw new ArgumentException("Event not found");
-
-        // Маппим обновленные данные из доменной модели в существующую сущность
-        _mapper.Map(updatedEvent, existingEntity);
+        var entity = _mapper.Map<EventEntity>(updatedEvent);
+        _context.Events.Update(entity);
         await _context.SaveChangesAsync(cst);
     }
 
     public async Task DeleteAsync(Event deleteEvent, CancellationToken cst = default)
     {
-        var entity = await _context.Events.FindAsync(new object[] { deleteEvent.Id }, cst);
-        if (entity == null) return;
-
+        var entity = _mapper.Map<EventEntity>(deleteEvent);
         _context.Events.Remove(entity);
         await _context.SaveChangesAsync(cst);
     }
@@ -198,6 +189,21 @@ public class EventRepository : IEventRepository
             pageSize,
             totalCount
         );
+    }
+
+
+    public async Task AddAsync(Participant participant, CancellationToken cst = default)
+    {
+        var entity = _mapper.Map<ParticipantEntity>(participant);
+        await _context.Participants.AddAsync(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RemoveAsync(Participant participant, CancellationToken cst = default)
+    {
+        var entity = _mapper.Map<ParticipantEntity>(participant);
+        _context.Participants.Remove(entity);
+        await _context.SaveChangesAsync();
     }
     #endregion
 }

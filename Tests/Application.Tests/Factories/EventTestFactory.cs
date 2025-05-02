@@ -11,6 +11,7 @@ using EventManager.Persistence.Mapping.EventProfiles;
 using EventManager.Persistence.Mapping.ParticipantProfiles;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using EventManager.Persistence.Mapping.CategoryProfiles;
 
 namespace Application.Tests.Factories;
 
@@ -140,13 +141,12 @@ public static class EventTestFactory
             .Returns(userId ?? Guid.NewGuid());
         return mock;
     }
+
     public static IMapper CreateApplicationMapper()
     {
         var config = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile<EventToEventDtoProfile>();
-            cfg.AddProfile<PagedResponceProfile>();
-            cfg.AddProfile<ParticipantToParticipantDtoProfile>();
+            cfg.AddMaps(typeof(EventToEventDtoProfile).Assembly);
         });
         return config.CreateMapper();
     }
@@ -155,8 +155,8 @@ public static class EventTestFactory
     {
         var config = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile<EventEntityToEventProfile>();
-            cfg.AddProfile<ParticipantEntityToParticipantProfile>();
+            // Сканируем сборку Persistence для профилей
+            cfg.AddMaps(typeof(EventEntityToEventProfile).Assembly);
         });
         return config.CreateMapper();
     }
