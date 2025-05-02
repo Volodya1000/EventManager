@@ -9,5 +9,4 @@ public interface ICategoryRepository
     Task<Guid> AddCategoryAsync(Category category, CancellationToken cst = default);
     Task DeleteCategoryAsync(Category category, CancellationToken cst = default);
     Task UpdateCategoryAsync(Category category, CancellationToken cst = default);
-    Task<bool> ExistsAsync(string categoryName, CancellationToken cst = default);
 }

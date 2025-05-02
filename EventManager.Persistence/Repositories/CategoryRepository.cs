@@ -25,36 +25,23 @@ public class CategoryRepository : ICategoryRepository
     public async Task<Guid> AddCategoryAsync(Category category, CancellationToken cst = default)
     {
         var entity = _mapper.Map<CategoryEntity>(category);
-
         await _context.Categories.AddAsync(entity, cst);
         await _context.SaveChangesAsync(cst);
-
         return entity.Id;
     }
 
     public async Task DeleteCategoryAsync(Category category, CancellationToken cst = default)
     {
-        var entity = await _context.Categories.FindAsync(category.Id, cst);
-
+        var entity = _mapper.Map<CategoryEntity>(category);
         _context.Categories.Remove(entity);
         await _context.SaveChangesAsync(cst);
     }
 
     public async Task UpdateCategoryAsync(Category category, CancellationToken cst = default)
     {
-        var existingEntity = await _context.Categories
-            .FirstOrDefaultAsync(c => c.Id == category.Id, cst);
-
-        _mapper.Map(category, existingEntity);
-        _context.Entry(existingEntity).State = EntityState.Modified;
-
+        var entity = _mapper.Map<CategoryEntity>(category);
+        _context.Update(entity);
         await _context.SaveChangesAsync(cst);
-    }
-
-    public async Task<bool> ExistsAsync(string categoryName, CancellationToken cst = default)
-    {
-        return await _context.Categories.AsNoTracking()
-            .AnyAsync(c => c.Name == categoryName, cst);
     }
 
     public async Task<Category?> GetByIdAsync(Guid id, CancellationToken cst = default)

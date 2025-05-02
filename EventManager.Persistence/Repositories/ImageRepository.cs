@@ -1,52 +1,40 @@
-﻿using EventManager.Domain.Interfaces.Repositories;
+﻿using AutoMapper;
+using EventManager.Domain.Interfaces.Repositories;
 using EventManager.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
+using EventManager.Domain.Models;
 
 namespace EventManager.Persistence.Repositories;
 
-public class ImageRepository:IImageRepository
+public class ImageRepository : IImageRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public ImageRepository(ApplicationDbContext context)
+    public ImageRepository(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
-    public async Task AddImageToEventAsync(
-        Guid eventId,
-        string imageUrl,
-        CancellationToken cst = default)
+    public async Task AddAsync(Image image, CancellationToken cst = default)
     {
-        var entity = await _context.Events
-            .Include(e => e.Images)
-            .FirstOrDefaultAsync(e => e.Id == eventId, cst);
-
-        var newImage = new ImageEntity { Url = imageUrl };
-        entity.Images.Add(newImage);
+        var entity = _mapper.Map<ImageEntity>(image);
+        _context.Images.Add(entity);
         await _context.SaveChangesAsync(cst);
     }
 
-    public async Task DeleteImageAsyncWithoutSaveChanges(
-        Guid eventId,
-        string imageUrl,
-        CancellationToken cst = default)
+    public async Task UpdateAsync(Image image, CancellationToken cst = default)
     {
-        var entity = await _context.Events
-            .Include(e => e.Images)
-            .FirstOrDefaultAsync(e => e.Id == eventId, cst);
-
-        var imageToRemove = entity.Images.FirstOrDefault(i => i.Url == imageUrl);
-        entity.Images.Remove(imageToRemove);
+        var entity = _mapper.Map<ImageEntity>(image);
+        _context.Images.Update(entity);
+        await _context.SaveChangesAsync(cst);
     }
 
-    public async Task<bool> ExistsAsync(
-        Guid eventId,
-        string url,
-        CancellationToken cst = default)
+    public async Task DeleteAsync(Image image, CancellationToken cst = default)
     {
-        return await _context.Events.AsNoTracking()
-            .AnyAsync(e => e.Id == eventId
-                && e.Images.Any(i => i.Url == url), cst);
+        var entity = _mapper.Map<ImageEntity>(image);
+        _context.Images.Remove(entity);
+        await _context.SaveChangesAsync(cst);
     }
 }

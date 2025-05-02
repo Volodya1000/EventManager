@@ -21,16 +21,16 @@ public class EventEntityConfiguration : IEntityTypeConfiguration<EventEntity>
         builder.HasIndex(e => e.Name).IsUnique(); //имя уникально в рамках всех событий
 
         builder.Property(e => e.Location)
-            .IsRequired()
-            .HasMaxLength(300);
+            .IsRequired();
 
         builder.HasMany(e => e.Participants)
             .WithOne(p => p.Event)
             .HasForeignKey(p => p.EventId);
 
         builder.HasMany(e => e.Images)
-        .WithOne()
-        .HasForeignKey("EventId");
+       .WithOne(i => i.Event)          
+       .HasForeignKey(i => i.EventId)  
+       .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(e => e.Category)
            .WithMany()

@@ -30,7 +30,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
         modelBuilder.ApplyConfiguration(new EventEntityConfiguration());
         modelBuilder.ApplyConfiguration(new ParticipantEntityConfiguration());
         modelBuilder.ApplyConfiguration(new CategoryEntityConfiguration());
-        modelBuilder.ApplyConfiguration(new ImageConfiguration());
+        modelBuilder.ApplyConfiguration(new ImageEntityConfiguration());
 
         modelBuilder.Entity<IdentityRole<Guid>>()
             .HasData(new List<IdentityRole<Guid>>
