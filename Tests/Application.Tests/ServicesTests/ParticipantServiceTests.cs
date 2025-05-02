@@ -11,11 +11,10 @@ using EventManager.Application.Validators;
 using FluentAssertions;
 
 namespace Application.Tests.ServicesTests;
+
 public class ParticipantServiceTests : IDisposable
 {
     private readonly ApplicationDbContext _context;
-    private readonly IMapper _mapper;
-    private readonly IEventRepository _eventRepository;
     private readonly IParticipantRepository _participantRepository;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IAccountService> _accountServiceMock;
@@ -27,33 +26,31 @@ public class ParticipantServiceTests : IDisposable
         _context = EventTestFactory.CreateInMemoryContext();
 
         var persistenceMapper = EventTestFactory.CreatePersistenceMapper();
-        _mapper = EventTestFactory.CreateApplicationMapper();
+        var applicationMapper = EventTestFactory.CreateApplicationMapper();
 
-        _eventRepository = new EventRepository(_context, persistenceMapper);
+        var eventRepository = new EventRepository(_context, persistenceMapper);
         _participantRepository = new ParticipantRepository(_context, persistenceMapper);
 
         var categoryRepository = new CategoryRepository(_context, persistenceMapper);
         _userRepositoryMock = new Mock<IUserRepository>();
         _accountServiceMock = new Mock<IAccountService>();
 
-        // Инициализация EventService для создания событий
         _eventService = new EventService(
-            _eventRepository,
+            eventRepository,
             categoryRepository,
-            _mapper,
+            applicationMapper,
             _userRepositoryMock.Object,
             _accountServiceMock.Object,
             new CreateEventRequestValidator(),
             new UpdateEventRequestValidator(),
             new EventFilterRequestValidator());
 
-        // Инициализация ParticipantService для тестов
         _participantService = new ParticipantService(
             _participantRepository,
-            _eventRepository,
+            eventRepository,
             _userRepositoryMock.Object,
             _accountServiceMock.Object,
-            _mapper);
+            applicationMapper);
     }
 
     public void Dispose()

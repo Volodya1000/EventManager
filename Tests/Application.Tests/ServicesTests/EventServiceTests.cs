@@ -1,6 +1,5 @@
 ﻿using Application.Tests.Factories;
 using AutoMapper;
-using EventManager.Application.Exceptions;
 using EventManager.Domain.Interfaces.Repositories;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Requests;
@@ -12,38 +11,31 @@ using Moq;
 
 namespace Application.Tests.ServicesTests;
 
-
 public class EventServiceTests : IDisposable
 {
     private readonly ApplicationDbContext _context;
-    private readonly IMapper _mapper;
     private readonly EventRepository _eventRepository;
-    private readonly CategoryRepository _categoryRepository;
-    private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly Mock<IAccountService> _accountServiceMock;
     private readonly EventService _eventService;
 
     public EventServiceTests()
     {
         _context = EventTestFactory.CreateInMemoryContext(); 
 
-        _mapper = EventTestFactory.CreateApplicationMapper();
-
+        var applictionMapper = EventTestFactory.CreateApplicationMapper();
         var persistenceMapper = EventTestFactory.CreatePersistenceMapper();
 
         _eventRepository = new EventRepository(_context, persistenceMapper);
-        _categoryRepository = new CategoryRepository(_context, persistenceMapper);
 
-        _userRepositoryMock = new Mock<IUserRepository>();
-
-        _accountServiceMock = new Mock<IAccountService>();
+        var categoryRepository = new CategoryRepository(_context, persistenceMapper);
+        var userRepositoryMock = new Mock<IUserRepository>();
+        var accountServiceMock = new Mock<IAccountService>();
 
         _eventService = new EventService(
             _eventRepository,
-            _categoryRepository,
-            _mapper,
-            _userRepositoryMock.Object,
-            _accountServiceMock.Object,
+            categoryRepository,
+            applictionMapper,
+            userRepositoryMock.Object,
+            accountServiceMock.Object,
             new CreateEventRequestValidator(),
             new UpdateEventRequestValidator(),
             new EventFilterRequestValidator());
@@ -55,7 +47,6 @@ public class EventServiceTests : IDisposable
         _context.Dispose();
     }
 
-    #region OperationsWithEventTests
     [Fact(DisplayName = "GetAllAsync: Возвращает PagedResponce с событиями")]
     public async Task GetAllAsync_ReturnsPagedResponse()
     {
@@ -188,9 +179,4 @@ public class EventServiceTests : IDisposable
         result.Data.Should().ContainSingle();
         result.Data.First().Location.Should().Be(location1);
     }
-
-    #endregion
-
-
-   
 }
