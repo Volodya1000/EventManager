@@ -35,10 +35,10 @@ public class ImageService : IImageService
         CancellationToken cst = default)
     {
         var eventById = await _eventRepository.GetByIdAsync(eventId, cst)
-            ?? throw new EventNotFoundException(eventId);
+           ?? throw new NotFoundException($"Event with id {eventId} not found");
 
         string imageUrl = await _fileStorage.SaveFile(image, cst);
-        var newImage = Image.Create(eventId, imageUrl);
+        var newImage = Image.Create(Guid.NewGuid(),eventId, imageUrl);
         await _imageRepository.AddAsync(newImage, cst);
         return imageUrl;
     }
@@ -49,22 +49,17 @@ public class ImageService : IImageService
         CancellationToken cst = default)
     {
         var eventById = await _eventRepository.GetByIdAsync(eventId, cst)
-            ?? throw new EventNotFoundException(eventId);
+            ?? throw new NotFoundException($"Event with id {eventId} not found");
 
         var normalizedUrl = NormalizeUrl(filename);
 
-        if (!await _imageRepository.ExistsAsync(eventId, normalizedUrl, cst))
-            throw new ArgumentException("Image not found");
-
-        var imageToDelete = Image.Create(eventId, normalizedUrl);
+        var image = await _imageRepository.GetByEventIdAndUrlAsync(eventId, normalizedUrl, cst)
+               ?? throw new NotFoundException($"Event with id {eventId} not found");
 
         await _unitOfWork.BeginTransactionAsync(cst);
         try
         {
-            if (!await _imageRepository.ExistsAsync(eventId, normalizedUrl, cst))
-                throw new ArgumentException("Image not found");
-
-            await _imageRepository.DeleteImageAsyncWithoutSaveChanges(imageToDelete, cst);
+            await _imageRepository.DeleteImageAsyncWithoutSaveChanges(image, cst);
             await _fileStorage.DeleteFile(normalizedUrl, cst);
 
             var fname = Path.GetFileName(normalizedUrl);

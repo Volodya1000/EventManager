@@ -37,9 +37,20 @@ public class ImageRepository : IImageRepository
         _context.Images.Remove(entity);
     }
 
-    public async Task<bool> ExistsAsync(Guid eventId, string url, CancellationToken cst)
+    public async Task<bool> ExistsAsync(Guid eventId, string url, CancellationToken cst = default)
     {
         return await _context.Images.AsNoTracking().AnyAsync(
             i => i.EventId == eventId && i.Url == url, cst);
+    }
+
+    public async Task<Image?> GetByEventIdAndUrlAsync(Guid eventId, string url, CancellationToken cst = default)
+    {
+        var entity = await _context.Images
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.EventId == eventId && i.Url == url, cst);
+
+        return entity == null
+            ? null
+            : _mapper.Map<Image>(entity);
     }
 }

@@ -7,5 +7,7 @@ public interface IImageRepository
     Task AddAsync(Image image, CancellationToken cst = default);
     Task UpdateAsync(Image image, CancellationToken cst = default);
     Task DeleteImageAsyncWithoutSaveChanges(Image image, CancellationToken cst = default);
-    Task<bool> ExistsAsync(Guid eventId, string url, CancellationToken cst);
+    Task<bool> ExistsAsync(Guid eventId, string url, CancellationToken cst = default);
+    public Task<Image?> GetByEventIdAndUrlAsync(Guid eventId, string url, CancellationToken cst = default);
+  
 }

@@ -12,7 +12,6 @@ public static class CategoriesEndpoints
             .WithTags("Categories")
             .WithOpenApi();
 
-        // Эндпоинт получения всех категорий без авторизации
         categoriesGroup.MapGet("/", GetAllCategories)
             .Produces<IEnumerable<Category>>(StatusCodes.Status200OK)
             .WithOpenApi(operation => new OpenApiOperation(operation)

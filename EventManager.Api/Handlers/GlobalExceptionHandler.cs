@@ -38,7 +38,6 @@ public class GlobalExceptionHandler : IExceptionHandler
             RegistrationFailedException => (HttpStatusCode.BadRequest, exception.Message),
             RefreshTokenException => (HttpStatusCode.Unauthorized, exception.Message),
             UserNotFoundException => (HttpStatusCode.NotFound, exception.Message),
-            EventNotFoundException=> (HttpStatusCode.NotFound, exception.Message),
             UserAlreadyAdminException => (HttpStatusCode.Conflict, exception.Message),
             PromotionFailedException => (HttpStatusCode.BadRequest, exception.Message),
             FileStorageException => (HttpStatusCode.InternalServerError, exception.Message),

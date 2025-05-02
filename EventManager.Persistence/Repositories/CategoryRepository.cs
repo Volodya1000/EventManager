@@ -47,7 +47,7 @@ public class CategoryRepository : ICategoryRepository
     public async Task<Category?> GetByIdAsync(Guid id, CancellationToken cst = default)
     {
         var entity = await _context.Categories.FindAsync(id, cst);
-        return _mapper.Map<Category?>(entity);
+        return entity!=null?_mapper.Map<Category?>(entity):null;
     }
 
     public async Task<bool> ExistsAsync(string name, CancellationToken cst = default)
