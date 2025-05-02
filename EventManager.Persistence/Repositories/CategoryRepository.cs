@@ -49,4 +49,9 @@ public class CategoryRepository : ICategoryRepository
         var entity = await _context.Categories.FindAsync(id, cst);
         return _mapper.Map<Category?>(entity);
     }
+
+    public async Task<bool> ExistsAsync(string name, CancellationToken cst = default)
+    {
+        return await _context.Categories.AnyAsync(c => c.Name == name, cst);
+    }
 }

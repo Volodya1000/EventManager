@@ -31,10 +31,15 @@ public class ImageRepository : IImageRepository
         await _context.SaveChangesAsync(cst);
     }
 
-    public async Task DeleteAsync(Image image, CancellationToken cst = default)
+    public async Task DeleteImageAsyncWithoutSaveChanges(Image image, CancellationToken cst = default)
     {
         var entity = _mapper.Map<ImageEntity>(image);
         _context.Images.Remove(entity);
-        await _context.SaveChangesAsync(cst);
+    }
+
+    public async Task<bool> ExistsAsync(Guid eventId, string url, CancellationToken cst)
+    {
+        return await _context.Images.AsNoTracking().AnyAsync(
+            i => i.EventId == eventId && i.Url == url, cst);
     }
 }

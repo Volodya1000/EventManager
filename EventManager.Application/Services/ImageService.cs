@@ -3,6 +3,7 @@ using EventManager.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using EventManager.Application.Interfaces.Services;
 using EventManager.Application.Exceptions;
+using EventManager.Domain.Models;
 
 namespace EventManager.Application.Services;
 
@@ -37,7 +38,8 @@ public class ImageService : IImageService
             ?? throw new EventNotFoundException(eventId);
 
         string imageUrl = await _fileStorage.SaveFile(image, cst);
-        await _imageRepository.AddImageToEventAsync(eventId, imageUrl, cst);
+        var newImage = Image.Create(eventId, imageUrl);
+        await _imageRepository.AddAsync(newImage, cst);
         return imageUrl;
     }
 
@@ -51,13 +53,18 @@ public class ImageService : IImageService
 
         var normalizedUrl = NormalizeUrl(filename);
 
+        if (!await _imageRepository.ExistsAsync(eventId, normalizedUrl, cst))
+            throw new ArgumentException("Image not found");
+
+        var imageToDelete = Image.Create(eventId, normalizedUrl);
+
         await _unitOfWork.BeginTransactionAsync(cst);
         try
         {
             if (!await _imageRepository.ExistsAsync(eventId, normalizedUrl, cst))
                 throw new ArgumentException("Image not found");
 
-            await _imageRepository.DeleteImageAsyncWithoutSaveChanges(eventId, normalizedUrl, cst);
+            await _imageRepository.DeleteImageAsyncWithoutSaveChanges(imageToDelete, cst);
             await _fileStorage.DeleteFile(normalizedUrl, cst);
 
             var fname = Path.GetFileName(normalizedUrl);
