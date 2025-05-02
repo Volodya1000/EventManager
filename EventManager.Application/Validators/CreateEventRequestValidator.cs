@@ -19,7 +19,7 @@ public class CreateEventRequestValidator : AbstractValidator<CreateEventRequest>
             .WithMessage($"Description must be between {Event.MIN_DESCRIPTION_LENGTH} and {Event.MAX_DESCRIPTION_LENGTH} characters");
 
         RuleFor(r => r.DateTime)
-            .GreaterThan(DateTime.Now)
+            .GreaterThan(DateTime.UtcNow)
             .WithMessage("Event date must be in the future");
 
         RuleFor(r => r.Location)

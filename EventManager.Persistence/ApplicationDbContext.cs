@@ -111,4 +111,12 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
         return result;
     }
 
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        var result = base.SaveChanges(acceptAllChangesOnSuccess);
+        ChangeTracker.Clear();
+        return result;
+    }
+
+
 }

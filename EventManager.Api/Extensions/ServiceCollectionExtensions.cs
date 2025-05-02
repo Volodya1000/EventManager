@@ -54,6 +54,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();
+        services.AddScoped<IParticipantRepository, ParticipantRepository>();
     }
 
     public static void AddApplicationServices(this IServiceCollection services)
@@ -65,6 +66,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IFileService, FileService>();
+        services.AddScoped<IParticipantService, ParticipantService>();
     }
 
     public static void AddValidation(this IServiceCollection services)

@@ -16,8 +16,8 @@ public class UpdateEventRequestValidator : AbstractValidator<UpdateEventRequest>
             .When(request => request.Description != null);
 
         RuleFor(request => request.DateTime)
-            .Must(date => date > DateTime.Now)
-            .WithMessage($"Event date must be at least {DateTime.Now.AddMinutes(1):HH:mm} (current time + 1 minute)")
+            .Must(date => date > DateTime.UtcNow)
+            .WithMessage($"Event date must be at least {DateTime.UtcNow.AddMinutes(1):HH:mm} (current time + 1 minute)")
             .When(request => request.DateTime != default);
 
         RuleFor(request => request.Location)

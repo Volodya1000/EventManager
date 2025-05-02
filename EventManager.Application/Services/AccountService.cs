@@ -60,7 +60,12 @@ public class AccountService : IAccountService
             throw new RegistrationFailedException(errors);
         }
 
-        await _userManager.AddToRoleAsync(user, IdentityRoleConstants.User)
+        //await _userManager.AddToRoleAsync(user, IdentityRoleConstants.User)
+        //    .WaitAsync(cst);
+        var createdUser = await _userManager.FindByEmailAsync(registerRequest.Email)
+       .WaitAsync(cst);
+
+        await _userManager.AddToRoleAsync(createdUser!, IdentityRoleConstants.User)
             .WaitAsync(cst);
     }
 
