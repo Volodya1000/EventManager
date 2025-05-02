@@ -4,7 +4,6 @@ namespace EventManager.Domain.Interfaces.Repositories;
 
 public interface IEventRepository
 {
-    #region OperationsWithEvents
     Task<PagedResponse<Event>> GetAllAsync(
         int pageNumber,
         int pageSize,
@@ -50,20 +49,6 @@ public interface IEventRepository
     Task<bool> AnyEventWithCategoryAsync(
         Guid categoryId,
         CancellationToken cst = default);
-    #endregion
-
-    #region OperationsWithParticipants
-    Task<PagedResponse<Participant>> GetParticipantsAsync(
-        Guid eventId,
-        int pageNumber = 1,
-        int pageSize = 10,
-        CancellationToken cst = default);
-
-    Task AddAsync(Participant participant, 
-        CancellationToken cst = default);
-    Task RemoveAsync(Participant participant,
-        CancellationToken cst = default);
-    #endregion
 }
 
 

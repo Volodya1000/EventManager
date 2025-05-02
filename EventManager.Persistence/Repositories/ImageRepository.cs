@@ -20,7 +20,7 @@ public class ImageRepository : IImageRepository
     public async Task AddAsync(Image image, CancellationToken cst = default)
     {
         var entity = _mapper.Map<ImageEntity>(image);
-        _context.Images.Add(entity);
+        await _context.Images.AddAsync(entity, cst);
         await _context.SaveChangesAsync(cst);
     }
 

@@ -16,7 +16,6 @@ public class EventRepository : IEventRepository
         _mapper = mapper;
     }
 
-    #region OperationsWithEvents
     public async Task<PagedResponse<Event>> GetAllAsync(int pageNumber, int pageSize, CancellationToken cst = default)
     {
         var query = _context.Events
@@ -159,51 +158,4 @@ public class EventRepository : IEventRepository
             .AsNoTracking()
             .AnyAsync(e => e.Category.Id == categoryId, cst);
     }
-    #endregion
-
-    #region OperationsWithParticipants
-    public async Task<PagedResponse<Participant>> GetParticipantsAsync(
-        Guid eventId,
-        int pageNumber = 1,
-        int pageSize = 10,
-        CancellationToken cst = default)
-    {
-        var query = _context.Participants
-            .AsNoTracking()
-            .Include(p => p.User)
-            .Where(p => p.EventId == eventId);
-
-        var totalCount = await query.CountAsync(cst);
-
-        var participants = await query
-            .OrderBy(p => p.RegistrationDate)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cst);
-
-        var mappedParticipants = _mapper.Map<List<Participant>>(participants);
-
-        return new PagedResponse<Participant>(
-            mappedParticipants,
-            pageNumber,
-            pageSize,
-            totalCount
-        );
-    }
-
-
-    public async Task AddAsync(Participant participant, CancellationToken cst = default)
-    {
-        var entity = _mapper.Map<ParticipantEntity>(participant);
-        await _context.Participants.AddAsync(entity);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task RemoveAsync(Participant participant, CancellationToken cst = default)
-    {
-        var entity = _mapper.Map<ParticipantEntity>(participant);
-        _context.Participants.Remove(entity);
-        await _context.SaveChangesAsync();
-    }
-    #endregion
 }

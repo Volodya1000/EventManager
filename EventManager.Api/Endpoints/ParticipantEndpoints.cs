@@ -37,16 +37,16 @@ public static class ParticipantEndpoints
 
     private static async Task<IResult> RegisterParticipant(
       Guid eventId,
-      [FromServices] IEventService eventService,
+      [FromServices] IParticipantService participantService,
       CancellationToken cancellationToken)
     {
-        var participationId = await eventService.RegisterAsync(eventId, cancellationToken);
+        var participationId = await participantService.RegisterAsync(eventId, cancellationToken);
         return Results.Created($"/api/events/{eventId}/participants/{participationId}", participationId);
     }
 
     private static async Task<IResult> GetEventParticipants(
         Guid eventId,
-        [FromServices] IEventService service,
+        [FromServices] IParticipantService service,
         int pageNumber = 1,
         int pageSize = 10,
         CancellationToken cancellationToken = default)
@@ -57,10 +57,10 @@ public static class ParticipantEndpoints
 
     private static async Task<IResult> CancelMyParticipation(
         Guid eventId,
-        [FromServices] IEventService eventService,
+        [FromServices] IParticipantService participantService,
         CancellationToken cancellationToken)
     {
-        await eventService.CancelAsync(eventId, cancellationToken);
+        await participantService.CancelAsync(eventId, cancellationToken);
         return Results.NoContent();
     }
 }

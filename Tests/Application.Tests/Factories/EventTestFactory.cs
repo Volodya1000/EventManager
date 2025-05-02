@@ -155,7 +155,6 @@ public static class EventTestFactory
     {
         var config = new MapperConfiguration(cfg =>
         {
-            // Сканируем сборку Persistence для профилей
             cfg.AddMaps(typeof(EventEntityToEventProfile).Assembly);
         });
         return config.CreateMapper();

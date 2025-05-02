@@ -13,7 +13,4 @@ public interface IEventService
     Task<Guid> CreateAsync(CreateEventRequest request, CancellationToken cst = default);
     Task UpdateAsync(Guid id, UpdateEventRequest request, CancellationToken cst = default);
     Task DeleteAsync(Guid id, CancellationToken cst = default);
-    Task<Guid> RegisterAsync(Guid eventId, CancellationToken cst = default);
-    Task<PagedResponse<ParticipantDto>> GetParticipantsAsync(Guid eventId, int pageNumber, int pageSize, CancellationToken cst = default);
-    Task CancelAsync(Guid eventId, CancellationToken cst = default);
 }
