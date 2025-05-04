@@ -1,26 +1,28 @@
 version: '3.8'
 
-name: eventmanager
-
 services:
   eventmanager.api:
-    image: ${DOCKER_REGISTRY-}eventmanagerapi
-    container_name: eventmanager.api
     build:
       context: .
       dockerfile: EventManager.Api/Dockerfile
+    image: eventmanager.api
+    container_name: eventmanager.api
     ports:
-      - "5000:5000"
-      - "5001:5001"
+      - "5000:5000"   # HTTP
+      - "5001:5001"   # HTTPS
+    environment:
+      - ASPNETCORE_URLS=http://+:5000;https://+:5001
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=docker
+      - FILE_STORAGE_PATH=/data/uploads
     volumes:
       - ./data/uploads:/data/uploads
-    environment:
-      - FILE_STORAGE_PATH=/data/uploads
-    networks:
-      - eventmanager-network
     depends_on:
       eventmanager.database:
         condition: service_healthy
+    networks:
+      - eventmanager-network
+
   eventmanager.database:
     image: postgres:latest
     container_name: eventmanager.database
@@ -32,22 +34,23 @@ services:
       - ./.containers/EventManagerDataBase:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    networks:
-     - eventmanager-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  eventmanager.cache:
-    container_name: eventmanager.redis
-    image: redis:latest
-    restart: always
-    ports:
-      - '6379:6379'
     networks:
       - eventmanager-network
-networks: 
+
+  eventmanager.cache:
+    image: redis:latest
+    container_name: eventmanager.redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - eventmanager-network
+
+networks:
   eventmanager-network:
     driver: bridge
