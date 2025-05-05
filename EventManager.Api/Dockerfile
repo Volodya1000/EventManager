@@ -28,16 +28,11 @@ RUN dotnet publish "EventManager.Api.csproj" \
 FROM base AS final
 WORKDIR /app
 
+# Создаем папку для сертификатов и копируем сертификат
+RUN mkdir -p /app/certificates
+COPY Cert/localhost-dev.pfx /app/certificates/aspnetapp.pfx
+
 # Копируем опубликованное приложение
 COPY --from=build /app/publish .
-
-
-
-ARG CERT_PATH_DEST=/app/cert/localhost-dev.pfx
-ENV CertPath=$CERT_PATH_DEST
-
-RUN echo "Env CertPath value is: $CertPath"
-
-COPY Cert/localhost-dev.pfx $CertPath
 
 ENTRYPOINT ["dotnet", "EventManager.Api.dll"]
