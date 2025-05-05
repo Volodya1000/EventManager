@@ -52,6 +52,12 @@ Visual Studio автоматически соберет проект, запус
 
 Убедитесь, что Docker Desktop, и вы находитесь в корне проекта (`EventManager/`)
 
+Выполните 
+```bash
+Cert\generate-dev-cert.ps1 
+```
+данный файл создаст сертификат Cert\localhost-dev.pfx
+
 Выполните команду:
 ```bash
 docker-compose up --build
