@@ -1,8 +1,9 @@
 using EventManager.Api.Extensions;
 using EventManager.API.Handlers;
-using EventManager.Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.UseCustomKestrelConfiguration();
 builder.Services.AddSwaggerConfiguration();
 builder.Services.AddIdentityConfiguration();
 builder.Services.AddDatabaseConfiguration(builder.Configuration);

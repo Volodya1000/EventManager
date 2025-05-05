@@ -32,7 +32,8 @@ WORKDIR /app
 # Копируем опубликованное приложение
 COPY --from=build /app/publish .
 
-# Копируем доверенный PFX из папки certificates (пароль будет "docker")
-COPY certificates/aspnetapp.pfx /app/certificates/aspnetapp.pfx
+
+RUN mkdir -p /app/certificates
+COPY EventManager.Api/certificates/aspnetapp.pfx /app/certificates
 
 ENTRYPOINT ["dotnet", "EventManager.Api.dll"]
