@@ -8,10 +8,9 @@ services:
     image: eventmanager.api
     container_name: eventmanager.api
     ports:
-      - "5000:5000"   # HTTP
       - "5001:5001"   # HTTPS
     environment:
-      - ASPNETCORE_URLS=http://+:5000;https://+:5001
+      - ASPNETCORE_URLS=https://+:5001
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/aspnetapp.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=docker
       - FILE_STORAGE_PATH=/data/uploads

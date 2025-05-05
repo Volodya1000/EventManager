@@ -1,7 +1,6 @@
 # 1) Runtime-образ
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
-EXPOSE 5000
 EXPOSE 5001
 
 # 2) Сборка и публикация
@@ -32,7 +31,13 @@ WORKDIR /app
 # Копируем опубликованное приложение
 COPY --from=build /app/publish .
 
-# Копируем доверенный PFX из папки certificates (пароль будет "docker")
-COPY certificates/aspnetapp.pfx /app/certificates/aspnetapp.pfx
+
+
+ARG CERT_PATH_DEST=/app/cert/localhost-dev.pfx
+ENV CertPath=$CERT_PATH_DEST
+
+RUN echo "Env CertPath value is: $CertPath"
+
+COPY Cert/localhost-dev.pfx $CertPath
 
 ENTRYPOINT ["dotnet", "EventManager.Api.dll"]

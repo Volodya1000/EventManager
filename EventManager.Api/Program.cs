@@ -1,6 +1,6 @@
 using EventManager.Api.Extensions;
 using EventManager.API.Handlers;
-using EventManager.Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSwaggerConfiguration();
